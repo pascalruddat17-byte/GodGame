@@ -1642,6 +1642,15 @@ button:active {
   transform: scale(var(--node-scale));
   transform-origin: bottom center;
   z-index: 2;
+  cursor: pointer;
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.world-node:hover,
+.world-node:focus-visible {
+  filter: brightness(1.18) saturate(1.12) drop-shadow(0 0 8px rgba(255, 224, 125, 0.52));
+  outline: none;
+  transform: scale(calc(var(--node-scale) * 1.08));
 }
 
 .world-node.tree,

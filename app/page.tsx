@@ -916,6 +916,17 @@ export default function Home() {
                     <span
                       className={`world-node ${kind}`}
                       key={index}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={kind === "shrine" ? "Schrein zum Bauen" : kind === "rock" || kind === "flower" ? "Ressource zum Sammeln" : "Weltobjekt"}
+                      onClick={() => {
+                        if (kind === "shrine") performWorldAction("Baut");
+                        else if (kind === "rock" || kind === "flower") performWorldAction("Sammelt");
+                        else performWorldAction("Erkundet");
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") event.currentTarget.click();
+                      }}
                       style={{ left, top, "--node-scale": scale } as React.CSSProperties}
                     >
                       {(kind === "tree" || kind === "pine" || kind === "bush") && <><i /><b /><em /></>}
