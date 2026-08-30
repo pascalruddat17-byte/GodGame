@@ -28,6 +28,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Screen = "slots" | "lobby" | "editor" | "shop" | "world";
+type WorldAction = "Bereit" | "Sammelt" | "Baut" | "Erkundet";
 type Category =
   | "Bodies"
   | "Heads"
@@ -400,6 +401,7 @@ export default function Home() {
   const [deviceMode, setDeviceMode] = useState<"mobile" | "pc">("mobile");
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const [mapZoom, setMapZoom] = useState(1);
+  const [worldAction, setWorldAction] = useState<WorldAction>("Bereit");
   const dragOrigin = useRef<{ pointerX: number; pointerY: number; x: number; y: number } | null>(null);
   const activePointers = useRef(new Map<number, { x: number; y: number }>());
   const pinchOrigin = useRef<{ distance: number; zoom: number } | null>(null);
@@ -892,10 +894,30 @@ export default function Home() {
                     </span>
                   );
                 })}
-                <Creature equipped={currentCreature.equipped} compact />
+                <Creature
+                  equipped={currentCreature.equipped}
+                  compact
+                  onClick={() => setScreen("editor")}
+                />
                 <span className="map-creature one" />
                 <span className="map-creature two" />
               </div>
+            </div>
+            <div className="world-actions" aria-label="Kreaturenaktionen">
+              <div className="world-active-creature">
+                <span>AKTIVE KREATUR</span>
+                <strong>{currentCreature.name}</strong>
+                <small>{worldAction}</small>
+              </div>
+              <button className={worldAction === "Sammelt" ? "is-active" : ""} onClick={() => setWorldAction("Sammelt")}>
+                <TreePine size={16} /> Sammeln
+              </button>
+              <button className={worldAction === "Baut" ? "is-active" : ""} onClick={() => setWorldAction("Baut")}>
+                <Mountain size={16} /> Bauen
+              </button>
+              <button className={worldAction === "Erkundet" ? "is-active" : ""} onClick={() => setWorldAction("Erkundet")}>
+                <Wind size={16} /> Erkunden
+              </button>
             </div>
           </section>
         )}

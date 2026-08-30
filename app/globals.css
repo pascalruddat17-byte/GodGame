@@ -1807,6 +1807,73 @@ button:active {
   border-color: rgba(246, 239, 217, 0.42);
 }
 
+.world-actions {
+  align-items: stretch;
+  background: rgba(5, 37, 34, 0.9);
+  border: 2px solid rgba(246, 239, 217, 0.28);
+  border-radius: 10px;
+  bottom: 14px;
+  box-shadow: 0 8px 24px rgba(7, 28, 24, 0.3);
+  display: grid;
+  gap: 5px;
+  grid-template-columns: 1.25fr repeat(3, 1fr);
+  left: 14px;
+  padding: 7px;
+  position: absolute;
+  right: 14px;
+  z-index: 8;
+}
+
+.world-active-creature {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  padding: 3px 6px;
+}
+
+.world-active-creature span {
+  color: #9fe2bd;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.world-active-creature strong {
+  color: #fff0d8;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-active-creature small {
+  color: #e2a44e;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.world-actions button {
+  align-items: center;
+  background: rgba(246, 239, 217, 0.1);
+  border: 1px solid rgba(246, 239, 217, 0.2);
+  border-radius: 6px;
+  color: #fff0d8;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font-size: 9px;
+  font-weight: 800;
+  gap: 2px;
+  justify-content: center;
+  min-width: 0;
+  padding: 5px 2px;
+}
+
+.world-actions button.is-active {
+  background: #d58a3e;
+  border-color: #ffe5a8;
+}
+
 .world-screen .map::after {
   background: linear-gradient(180deg, rgba(8, 35, 33, 0.24), transparent 24% 68%, rgba(5, 34, 25, 0.38));
   content: "";
