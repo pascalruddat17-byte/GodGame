@@ -38,7 +38,7 @@ type Category =
   | "Arms"
   | "Hands"
   | "Feet";
-type Pack = "Forest" | "Stone" | "Water" | "Fire" | "Ancient";
+type Pack = "Forest-Mutant" | "Swamp-Tech" | "River-Glass" | "Fungus" | "Solar-Clay";
 type Stat = "Leben" | "Angriff" | "Sammeln" | "Bauen" | "Geschwindigkeit";
 
 type Part = {
@@ -51,6 +51,7 @@ type Part = {
   stats: Record<Stat, number>;
   symbol: string;
   color: string;
+  image: string;
 };
 
 type SlotSave = {
@@ -68,8 +69,6 @@ type GlobalState = {
 };
 
 const categories: Category[] = [
-  "Bodies",
-  "Heads",
   "Wings",
   "Legs",
   "Cores",
@@ -78,9 +77,17 @@ const categories: Category[] = [
   "Arms",
   "Hands",
   "Feet",
+  "Heads",
+  "Bodies",
 ];
 
-const packs: Pack[] = ["Forest", "Stone", "Water", "Fire", "Ancient"];
+const packs: Pack[] = [
+  "Forest-Mutant",
+  "Swamp-Tech",
+  "River-Glass",
+  "Fungus",
+  "Solar-Clay",
+];
 
 const stats: Stat[] = [
   "Leben",
@@ -91,11 +98,11 @@ const stats: Stat[] = [
 ];
 
 const packStyles: Record<Pack, { color: string; prefix: string }> = {
-  Forest: { color: "#4d7b56", prefix: "Moss" },
-  Stone: { color: "#777068", prefix: "Basalt" },
-  Water: { color: "#347f91", prefix: "Reef" },
-  Fire: { color: "#b96239", prefix: "Ember" },
-  Ancient: { color: "#857247", prefix: "Rune" },
+  "Forest-Mutant": { color: "#5c9b3b", prefix: "Forest-Mutant" },
+  "Swamp-Tech": { color: "#247f86", prefix: "Swamp-Tech" },
+  "River-Glass": { color: "#20aeea", prefix: "River-Glass" },
+  Fungus: { color: "#9b55ba", prefix: "Fungus" },
+  "Solar-Clay": { color: "#c8752c", prefix: "Solar-Clay" },
 };
 
 const categorySymbols: Record<Category, string> = {
@@ -138,11 +145,11 @@ const statProfiles: Record<Category, Record<Stat, number>> = {
 };
 
 const packBonus: Record<Pack, Partial<Record<Stat, number>>> = {
-  Forest: { Sammeln: 3, Leben: 1 },
-  Stone: { Leben: 4, Bauen: 2 },
-  Water: { Geschwindigkeit: 2, Sammeln: 2 },
-  Fire: { Angriff: 4 },
-  Ancient: { Bauen: 3, Angriff: 1 },
+  "Forest-Mutant": { Sammeln: 3, Leben: 1 },
+  "Swamp-Tech": { Leben: 2, Bauen: 4 },
+  "River-Glass": { Geschwindigkeit: 2, Sammeln: 2 },
+  Fungus: { Leben: 2, Angriff: 2, Sammeln: 1 },
+  "Solar-Clay": { Bauen: 3, Angriff: 2 },
 };
 
 const allParts: Part[] = packs.flatMap((pack, packIndex) =>
@@ -161,6 +168,7 @@ const allParts: Part[] = packs.flatMap((pack, packIndex) =>
       ) as Record<Stat, number>,
       symbol: categorySymbols[category],
       color: packStyles[pack].color,
+      image: `/parts/${pack.toLowerCase()}-${category.toLowerCase()}.png`,
     };
   }),
 );
@@ -172,10 +180,10 @@ const initialSlots: SlotSave[] = [
     progress: 12,
     creatures: 3,
     equipped: {
-      Bodies: "forest-bodies",
-      Heads: "forest-heads",
-      Legs: "stone-legs",
-      Cores: "water-cores",
+      Bodies: "forest-mutant-bodies",
+      Heads: "forest-mutant-heads",
+      Legs: "swamp-tech-legs",
+      Cores: "river-glass-cores",
     },
   },
   { used: false, creatureName: "Neue Welt", progress: 0, creatures: 0, equipped: {} },
@@ -185,7 +193,12 @@ const initialSlots: SlotSave[] = [
 const initialGlobal: GlobalState = {
   coins: 0,
   gems: 0,
-  unlocked: ["forest-bodies", "forest-heads", "stone-legs", "water-cores"],
+  unlocked: [
+    "forest-mutant-bodies",
+    "forest-mutant-heads",
+    "swamp-tech-legs",
+    "river-glass-cores",
+  ],
 };
 
 function loadState<T>(key: string, fallback: T): T {
@@ -278,7 +291,7 @@ function Creature({
 function PartIcon({ part }: { part: Part }) {
   return (
     <span className="part-icon" style={{ "--part-color": part.color } as React.CSSProperties}>
-      <span>{part.symbol}</span>
+      <img src={part.image} alt="" />
     </span>
   );
 }
@@ -312,16 +325,16 @@ export default function Home() {
   const current = slots[activeSlot];
 
   useEffect(() => {
-    setSlots(loadState("earthcraft-v3-slots", initialSlots));
-    setGlobal(loadState("earthcraft-v3-global", initialGlobal));
+    setSlots(loadState("earthcraft-v4-slots", initialSlots));
+    setGlobal(loadState("earthcraft-v4-global", initialGlobal));
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("earthcraft-v3-slots", JSON.stringify(slots));
+    window.localStorage.setItem("earthcraft-v4-slots", JSON.stringify(slots));
   }, [slots]);
 
   useEffect(() => {
-    window.localStorage.setItem("earthcraft-v3-global", JSON.stringify(global));
+    window.localStorage.setItem("earthcraft-v4-global", JSON.stringify(global));
   }, [global]);
 
   useEffect(() => {
@@ -363,9 +376,9 @@ export default function Home() {
               progress: 1,
               creatures: 1,
               equipped: {
-                Bodies: "forest-bodies",
-                Heads: "forest-heads",
-                Cores: "forest-cores",
+                Bodies: "forest-mutant-bodies",
+                Heads: "forest-mutant-heads",
+                Cores: "forest-mutant-cores",
               },
             }
           : slot,
