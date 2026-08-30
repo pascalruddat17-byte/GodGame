@@ -897,6 +897,12 @@ export default function Home() {
                   />
                 ))}
               </div>
+              <div className="world-foreground" aria-hidden="true">
+                <i className="frame-tree frame-tree-left" />
+                <i className="frame-tree frame-tree-right" />
+                <i className="foreground-grass foreground-grass-left" />
+                <i className="foreground-grass foreground-grass-right" />
+              </div>
               <div
                 className={`map-pan-layer world-action-${worldAction.toLowerCase()}`}
                 style={{

@@ -1848,6 +1848,67 @@ button:active {
   width: 3px;
 }
 
+.world-foreground {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: 7;
+}
+
+.frame-tree {
+  background: #5b3f2b;
+  bottom: -40px;
+  box-shadow: inset -16px 0 rgba(32, 44, 28, 0.24), 7px 0 0 rgba(38, 67, 39, 0.26);
+  height: 430px;
+  position: absolute;
+  width: 58px;
+}
+
+.frame-tree::before,
+.frame-tree::after {
+  background: #245a40;
+  border: 5px solid #1d4937;
+  border-radius: 50%;
+  content: "";
+  height: 190px;
+  position: absolute;
+  width: 190px;
+}
+
+.frame-tree::before { left: -72px; top: -90px; }
+.frame-tree::after { left: 18px; top: -142px; background: #32754a; }
+
+.frame-tree-left { left: -17px; transform: rotate(3deg); }
+.frame-tree-right { right: -17px; transform: rotate(-3deg); }
+
+.foreground-grass {
+  border-bottom: 38px solid #1b5039;
+  border-left: 32px solid transparent;
+  border-right: 32px solid transparent;
+  bottom: -5px;
+  height: 0;
+  position: absolute;
+  width: 0;
+}
+
+.foreground-grass::after,
+.foreground-grass::before {
+  border-bottom: 28px solid #286846;
+  border-left: 24px solid transparent;
+  border-right: 24px solid transparent;
+  bottom: 0;
+  content: "";
+  height: 0;
+  position: absolute;
+  width: 0;
+}
+
+.foreground-grass::before { left: 28px; transform: rotate(12deg); }
+.foreground-grass::after { right: 20px; transform: rotate(-18deg); }
+.foreground-grass-left { left: 96px; }
+.foreground-grass-right { right: 96px; }
+
 .world-screen .map::before {
   background:
     linear-gradient(180deg, rgba(205, 239, 221, 0.2), transparent 22%),
