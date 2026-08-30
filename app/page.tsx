@@ -183,8 +183,8 @@ const initialSlots: SlotSave[] = [
 ];
 
 const initialGlobal: GlobalState = {
-  coins: 24680,
-  gems: 1540,
+  coins: 0,
+  gems: 0,
   unlocked: ["forest-bodies", "forest-heads", "stone-legs", "water-cores"],
 };
 
@@ -312,16 +312,16 @@ export default function Home() {
   const current = slots[activeSlot];
 
   useEffect(() => {
-    setSlots(loadState("earthcraft-v2-slots", initialSlots));
-    setGlobal(loadState("earthcraft-v2-global", initialGlobal));
+    setSlots(loadState("earthcraft-v3-slots", initialSlots));
+    setGlobal(loadState("earthcraft-v3-global", initialGlobal));
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("earthcraft-v2-slots", JSON.stringify(slots));
+    window.localStorage.setItem("earthcraft-v3-slots", JSON.stringify(slots));
   }, [slots]);
 
   useEffect(() => {
-    window.localStorage.setItem("earthcraft-v2-global", JSON.stringify(global));
+    window.localStorage.setItem("earthcraft-v3-global", JSON.stringify(global));
   }, [global]);
 
   useEffect(() => {
@@ -657,10 +657,10 @@ function UtilityBar({
   return (
     <header className="utility-bar">
       <span>
-        <img src="/reference-coin.png" alt="" /> {global.coins.toLocaleString("de-DE")}
+        <i className="currency-icon coin-icon" aria-hidden="true" /> {global.coins.toLocaleString("de-DE")}
       </span>
       <span>
-        <img src="/reference-gem.png" alt="" /> {global.gems.toLocaleString("de-DE")}
+        <i className="currency-icon gem-icon" aria-hidden="true" /> {global.gems.toLocaleString("de-DE")}
       </span>
       <button onClick={onMenu} aria-label="Menu offnen">
         <Menu size={21} />
