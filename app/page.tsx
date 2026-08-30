@@ -541,6 +541,7 @@ export default function Home() {
 
   return (
     <main className="game-shell">
+      <link rel="preload" as="image" href="/reference-lobby-empty.jpg" />
       <section className="phone-frame" aria-label="2D Mobile God Game Prototype">
         {screen !== "slots" && <UtilityBar global={global} onMenu={() => setMenuOpen(true)} />}
 
@@ -574,9 +575,11 @@ export default function Home() {
           <section className="earth-scene">
             <img
               className="reference-art"
-              src="/reference-lobby-empty.png"
+              src="/reference-lobby-empty.jpg"
               alt=""
               aria-hidden="true"
+              decoding="async"
+              fetchPriority="high"
             />
             <div className="creature-stage">
               <CreatureSlots
