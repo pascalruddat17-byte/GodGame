@@ -1701,17 +1701,55 @@ button:active {
   padding-right: 32px;
 }
 
+.pc-mode .creature-stage {
+  height: 620px;
+  top: 53%;
+  width: 520px;
+}
+
+.pc-mode .creature-stage::before {
+  height: 430px;
+  left: 45px;
+  top: 80px;
+  width: 430px;
+}
+
+.pc-mode .creature-stage > .creature {
+  bottom: 124px;
+  transform: translateX(-50%) scale(2.05);
+}
+
+.pc-mode .creature-stage > .creature-slots {
+  top: 8px;
+}
+
+.pc-mode .creature-stage p {
+  bottom: 70px;
+  font-size: 16px;
+  padding: 8px 16px;
+}
+
+.pc-mode .lobby-title {
+  left: 34px;
+  top: 112px;
+}
+
+.pc-mode .lobby-status {
+  right: 34px;
+  top: 114px;
+}
+
 .pc-mode .map {
   border-radius: 12px;
 }
 
 .pc-mode .hotbar {
-  bottom: 22px;
+  bottom: 28px;
   left: 50%;
-  max-width: 700px;
+  max-width: 760px;
   right: auto;
   transform: translateX(-50%);
-  width: min(76vw, 700px);
+  width: min(72vw, 760px);
 }
 
 .pc-mode .utility-bar {
