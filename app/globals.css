@@ -1344,6 +1344,22 @@ button:active {
   flex: 1;
   overflow: hidden;
   position: relative;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.map:active,
+.map.is-dragging {
+  cursor: grabbing;
+}
+
+.map-pan-layer {
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
+  will-change: transform;
 }
 
 .map-tile {
@@ -1435,6 +1451,33 @@ button:active {
   margin-top: 4px;
 }
 
+.world-controls {
+  align-items: center;
+  background: rgba(7, 44, 39, 0.88);
+  border: 2px solid rgba(246, 239, 217, 0.28);
+  border-radius: 8px;
+  color: #fff0d8;
+  display: flex;
+  font-size: 11px;
+  justify-content: space-between;
+  padding: 8px 10px;
+}
+
+.world-controls span {
+  color: #b7d5be;
+}
+
+.world-controls button {
+  background: #d58a3e;
+  border: 0;
+  border-radius: 5px;
+  color: #fff8e7;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 9px;
+}
+
 .menu-sheet {
   background: rgba(33, 40, 31, 0.96);
   color: #f7f0db;
@@ -1459,6 +1502,77 @@ button:active {
   justify-content: flex-start;
   min-height: 42px;
   padding: 0 12px;
+}
+
+.mode-picker {
+  border-top: 1px solid rgba(246, 239, 217, 0.18);
+  display: grid;
+  gap: 6px;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 6px;
+  padding-top: 12px;
+}
+
+.mode-picker > span {
+  color: #a8d3bd;
+  font-size: 10px;
+  font-weight: 800;
+  grid-column: 1 / -1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mode-picker button {
+  align-items: center;
+  background: rgba(246, 239, 217, 0.1);
+  border: 1px solid rgba(246, 239, 217, 0.2);
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 6px;
+}
+
+.mode-picker button.is-selected {
+  background: #d58a3e;
+  border-color: #ffe5a8;
+}
+
+.pc-mode {
+  aspect-ratio: auto;
+  border-radius: 0;
+  border-width: 0;
+  height: 100vh;
+  max-height: none;
+  max-width: none;
+  width: 100vw;
+}
+
+.pc-mode .world-screen {
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.pc-mode .map {
+  border-radius: 12px;
+}
+
+.pc-mode .hotbar {
+  bottom: 22px;
+  left: 50%;
+  max-width: 700px;
+  right: auto;
+  transform: translateX(-50%);
+  width: min(76vw, 700px);
+}
+
+.pc-mode .utility-bar {
+  justify-content: flex-start;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.pc-mode .utility-bar::before {
+  left: 25px;
+  right: 25px;
 }
 
 .close-menu {

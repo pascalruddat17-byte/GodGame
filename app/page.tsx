@@ -25,7 +25,7 @@ import {
   Wind,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Screen = "slots" | "lobby" | "editor" | "shop" | "world";
 type Category =
@@ -383,6 +383,9 @@ export default function Home() {
   const [global, setGlobal] = useState<GlobalState>(initialGlobal);
   const [activeSlot, setActiveSlot] = useState(0);
   const [activeCreature, setActiveCreature] = useState(0);
+  const [deviceMode, setDeviceMode] = useState<"mobile" | "pc">("mobile");
+  const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
+  const dragOrigin = useRef<{ pointerX: number; pointerY: number; x: number; y: number } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category | "Alle">("Alle");
   const [packFilter, setPackFilter] = useState<Pack | "Alle">("Alle");
@@ -403,6 +406,22 @@ export default function Home() {
   useEffect(() => {
     window.localStorage.setItem("earthcraft-v4-global", JSON.stringify(global));
   }, [global]);
+
+  useEffect(() => {
+    if (screen !== "world" || deviceMode !== "pc") return;
+    function handleKeyDown(event: KeyboardEvent) {
+      const speed = event.shiftKey ? 34 : 18;
+      const direction = event.key.toLowerCase();
+      if (!["w", "a", "s", "d"].includes(direction)) return;
+      event.preventDefault();
+      setMapOffset((offset) => ({
+        x: offset.x + (direction === "a" ? speed : direction === "d" ? -speed : 0),
+        y: offset.y + (direction === "w" ? speed : direction === "s" ? -speed : 0),
+      }));
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [deviceMode, screen]);
 
   useEffect(() => {
     if (!ad) return;
@@ -539,10 +558,32 @@ export default function Home() {
     }
   }
 
+  function handleMapPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragOrigin.current = {
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+      x: mapOffset.x,
+      y: mapOffset.y,
+    };
+  }
+
+  function handleMapPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!dragOrigin.current) return;
+    setMapOffset({
+      x: dragOrigin.current.x + event.clientX - dragOrigin.current.pointerX,
+      y: dragOrigin.current.y + event.clientY - dragOrigin.current.pointerY,
+    });
+  }
+
+  function handleMapPointerUp() {
+    dragOrigin.current = null;
+  }
+
   return (
     <main className="game-shell">
       <link rel="preload" as="image" href="/reference-lobby-empty.jpg" />
-      <section className="phone-frame" aria-label="2D Mobile God Game Prototype">
+      <section className={`phone-frame ${deviceMode === "pc" ? "pc-mode" : ""}`} aria-label="2D Mobile God Game Prototype">
         {screen !== "slots" && <UtilityBar global={global} onMenu={() => setMenuOpen(true)} />}
 
         {screen === "slots" && (
@@ -708,13 +749,28 @@ export default function Home() {
         {screen === "world" && (
           <section className="world-screen">
             <TopBack label="World" onBack={() => setScreen("lobby")} />
-            <div className="map">
-              {Array.from({ length: 34 }, (_, index) => (
-                <span className={`map-tile tile-${index % 7}`} key={index} />
-              ))}
-              <Creature equipped={currentCreature.equipped} compact />
-              <span className="map-creature one" />
-              <span className="map-creature two" />
+            <div
+              className={`map ${dragOrigin.current ? "is-dragging" : ""}`}
+              onPointerDown={handleMapPointerDown}
+              onPointerMove={handleMapPointerMove}
+              onPointerUp={handleMapPointerUp}
+              onPointerCancel={handleMapPointerUp}
+            >
+              <div
+                className="map-pan-layer"
+                style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px)` }}
+              >
+                {Array.from({ length: 34 }, (_, index) => (
+                  <span className={`map-tile tile-${index % 7}`} key={index} />
+                ))}
+                <Creature equipped={currentCreature.equipped} compact />
+                <span className="map-creature one" />
+                <span className="map-creature two" />
+              </div>
+            </div>
+            <div className="world-controls">
+              <span>{deviceMode === "pc" ? "WASD · SHIFT = schneller" : "Ziehen zum Erkunden"}</span>
+              <button onClick={() => setMapOffset({ x: 0, y: 0 })}>Zentrum</button>
             </div>
             <div className="world-caption">
               <h2>Erste 2D-Welt-Vorschau</h2>
@@ -735,6 +791,21 @@ export default function Home() {
             <button onClick={() => setScreen("shop")}>
               <ShoppingBag size={17} /> Globaler Shop
             </button>
+            <div className="mode-picker">
+              <span>Steuerung</span>
+              <button
+                className={deviceMode === "mobile" ? "is-selected" : ""}
+                onClick={() => setDeviceMode("mobile")}
+              >
+                Mobile
+              </button>
+              <button
+                className={deviceMode === "pc" ? "is-selected" : ""}
+                onClick={() => setDeviceMode("pc")}
+              >
+                PC · WASD
+              </button>
+            </div>
             <button
               onClick={() => {
                 setMenuOpen(false);
