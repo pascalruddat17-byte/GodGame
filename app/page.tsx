@@ -29,6 +29,45 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 type Screen = "slots" | "lobby" | "editor" | "shop" | "world";
 type WorldAction = "Bereit" | "Sammelt" | "Baut" | "Erkundet";
+type WorldCreatureKey = "female" | "male";
+type Resource = "wood" | "stone" | "food";
+type BuildKind = "hut" | "storage" | "farm";
+type GatherTask = {
+  targetIndex: number;
+  target: { x: number; y: number };
+  creature: WorldCreatureKey;
+  resource: Resource;
+  travelMs: number;
+  phase: "toTarget" | "mining" | "toTent";
+};
+type Building = {
+  id: number;
+  kind: BuildKind;
+  x: number;
+  y: number;
+  progress: number;
+  complete: boolean;
+  builder: WorldCreatureKey;
+};
+type BuildTask = {
+  id: number;
+  target: { x: number; y: number };
+  creature: WorldCreatureKey;
+  travelMs: number;
+  phase: "toSite" | "building";
+};
+type GatherTarget = {
+  index: number;
+  kind: string;
+  target: { x: number; y: number };
+  resource: Resource;
+};
+type WorldRoute = {
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  creature: WorldCreatureKey;
+  durationMs: number;
+};
 type Category =
   | "Bodies"
   | "Heads"
@@ -65,12 +104,16 @@ type SlotSave = {
 
 type CreatureSave = {
   name: string;
+  gender?: "female" | "male";
   equipped: Partial<Record<Category, string>>;
 };
 
 type GlobalState = {
   coins: number;
   gems: number;
+  wood: number;
+  stone: number;
+  food: number;
   unlocked: string[];
 };
 
@@ -110,6 +153,43 @@ const statShortNames: Record<Stat, string> = {
   Bauen: "BAU",
   Geschwindigkeit: "SPD",
 };
+
+const tentPosition = { x: 900, y: 600 };
+const worldStartPositions: Record<WorldCreatureKey, { x: number; y: number }> = {
+  female: { x: 870, y: 600 },
+  male: { x: 930, y: 608 },
+};
+const stoneMaxHealth = 500;
+const gatherableKinds = ["tree", "pine", "bush", "rock", "flower"];
+const buildOptions: Array<{
+  kind: BuildKind;
+  name: string;
+  description: string;
+  bonus: string;
+  cost: Partial<Record<Resource, number>>;
+}> = [
+  {
+    kind: "hut",
+    name: "Wohnhaus",
+    description: "Gibt deiner Spezies Platz zum Leben und ist der Start fuer neue Bewohner.",
+    bonus: "+2 Bevoelkerung",
+    cost: { wood: 20, stone: 8 },
+  },
+  {
+    kind: "storage",
+    name: "Lager",
+    description: "Sammelt abgelegte Rohstoffe und erhoeht spaeter das Inventar deiner Kreaturen.",
+    bonus: "+30 Lagerraum",
+    cost: { wood: 14, stone: 18 },
+  },
+  {
+    kind: "farm",
+    name: "Pilzfarm",
+    description: "Erzeugt Essen in der Naehe vom Camp und macht Sammelwege kuerzer.",
+    bonus: "+ Essen",
+    cost: { wood: 12, food: 10 },
+  },
+];
 
 const packStyles: Record<Pack, { color: string; prefix: string }> = {
   "Forest-Mutant": { color: "#5c9b3b", prefix: "Forest-Mutant" },
@@ -202,8 +282,8 @@ const initialSlots: SlotSave[] = [
           Cores: "river-glass-cores",
         },
       },
-      { name: "Kreatur 2", equipped: {} },
-      { name: "Kreatur 3", equipped: {} },
+      { name: "Spezies 2", equipped: {} },
+      { name: "Spezies 3", equipped: {} },
     ],
   },
   { used: false, creatureName: "Neue Welt", progress: 0, creatures: [] },
@@ -213,6 +293,9 @@ const initialSlots: SlotSave[] = [
 const initialGlobal: GlobalState = {
   coins: 0,
   gems: 0,
+  wood: 0,
+  stone: 0,
+  food: 0,
   unlocked: [
     "forest-mutant-bodies",
     "forest-mutant-heads",
@@ -231,7 +314,20 @@ function loadState<T>(key: string, fallback: T): T {
   }
 }
 
-function defaultCreature(name = "Neue Kreatur"): CreatureSave {
+function normalizeGlobal(raw: Partial<GlobalState>): GlobalState {
+  return {
+    ...initialGlobal,
+    ...raw,
+    coins: raw.coins ?? 0,
+    gems: raw.gems ?? 0,
+    wood: raw.wood ?? 0,
+    stone: raw.stone ?? 0,
+    food: raw.food ?? 0,
+    unlocked: Array.isArray(raw.unlocked) ? raw.unlocked : initialGlobal.unlocked,
+  };
+}
+
+function defaultCreature(name = "Neue Spezies"): CreatureSave {
   return {
     name,
     equipped: {
@@ -243,15 +339,33 @@ function defaultCreature(name = "Neue Kreatur"): CreatureSave {
 }
 
 function normalizeSlots(raw: SlotSave[]): SlotSave[] {
+  const normalizeCreature = (creature: Partial<CreatureSave> | undefined, index: number, slotName: string) => {
+    const fallbackName = index === 0 ? slotName || "Mira-Spezies" : `Spezies ${index + 1}`;
+    const genericName = !creature?.name || /^(Frau|Mann|Kreatur \d|Neue Kreatur)$/.test(creature.name);
+    return {
+      ...defaultCreature(fallbackName),
+      ...creature,
+      name: genericName ? fallbackName : creature.name,
+      equipped: creature?.equipped ?? defaultCreature(fallbackName).equipped,
+    };
+  };
+
   return raw.map((slot) => {
     const legacy = (slot as SlotSave & { equipped?: CreatureSave["equipped"] }).equipped;
-    const creatures = Array.isArray(slot.creatures)
+    let creatures = Array.isArray(slot.creatures)
       ? slot.creatures
       : [{ name: slot.creatureName, equipped: legacy ?? {} }];
+    if (creatures[0]?.gender === "female" && creatures[1]?.gender === "male") {
+      creatures = [
+        { name: slot.creatureName || "Mira-Spezies", equipped: creatures[0].equipped },
+        { name: "Spezies 2", equipped: {} },
+        { name: "Spezies 3", equipped: {} },
+      ];
+    }
     return {
       ...slot,
       creatures: Array.from({ length: 3 }, (_, index) =>
-        creatures[index] ?? { name: `Kreatur ${index + 1}`, equipped: {} },
+        normalizeCreature(creatures[index], index, index === 0 ? slot.creatureName : `Spezies ${index + 1}`),
       ),
     };
   });
@@ -265,7 +379,98 @@ function emptyStats(): Record<Stat, number> {
   return { Leben: 12, Angriff: 8, Sammeln: 8, Bauen: 8, Geschwindigkeit: 8 };
 }
 
+function shadeColor(color: string, amount: number) {
+  const hex = color.replace("#", "");
+  if (hex.length !== 6) return color;
+  const channels = [0, 2, 4].map((start) => {
+    const value = Number.parseInt(hex.slice(start, start + 2), 16);
+    return Math.max(0, Math.min(255, Math.round(value * amount))).toString(16).padStart(2, "0");
+  });
+  return `#${channels.join("")}`;
+}
+
 function Creature({
+  equipped,
+  gender = "female",
+  compact = false,
+  onClick,
+  style,
+}: {
+  equipped: Partial<Record<Category, string>>;
+  gender?: "female" | "male";
+  compact?: boolean;
+  onClick?: () => void;
+  style?: React.CSSProperties;
+}) {
+  const parts = Object.fromEntries(
+    categories.map((category) => [category, getPart(equipped[category])]),
+  ) as Partial<Record<Category, Part>>;
+  const tone = gender === "male" ? 0.78 : 1;
+  const partColor = (color: string) => shadeColor(color, tone);
+  const bodyColor = partColor(parts.Bodies?.color ?? "#697b62");
+  const coreColor = partColor(parts.Cores?.color ?? "#65a391");
+  const wingColor = partColor(parts.Wings?.color ?? "#8aa47a");
+  const sizeClass = compact ? "creature creature--compact" : "creature";
+
+  return (
+    <button
+      className={sizeClass}
+      onClick={onClick}
+      onPointerDown={(event) => event.stopPropagation()}
+      style={style}
+      aria-label="Kreatur bearbeiten"
+    >
+      {parts.Wings && (
+        <>
+          <span className="part wing wing-left" style={{ background: wingColor }} />
+          <span className="part wing wing-right" style={{ background: wingColor }} />
+        </>
+      )}
+      {parts.Tails && (
+        <span className="part tail" style={{ background: partColor(parts.Tails.color) }} />
+      )}
+      {parts.Legs && (
+        <>
+          <span className="part leg leg-left" style={{ background: partColor(parts.Legs.color) }} />
+          <span className="part leg leg-right" style={{ background: partColor(parts.Legs.color) }} />
+        </>
+      )}
+      {parts.Feet && (
+        <>
+          <span className="part foot foot-left" style={{ background: partColor(parts.Feet.color) }} />
+          <span className="part foot foot-right" style={{ background: partColor(parts.Feet.color) }} />
+        </>
+      )}
+      {parts.Arms && (
+        <>
+          <span className="part arm arm-left" style={{ background: partColor(parts.Arms.color) }} />
+          <span className="part arm arm-right" style={{ background: partColor(parts.Arms.color) }} />
+        </>
+      )}
+      {parts.Hands && (
+        <>
+          <span className="part hand hand-left" style={{ background: partColor(parts.Hands.color) }} />
+          <span className="part hand hand-right" style={{ background: partColor(parts.Hands.color) }} />
+        </>
+      )}
+      <span className="body" style={{ background: bodyColor }}>
+        <span className="core" style={{ background: coreColor }} />
+      </span>
+      <span className="head" style={{ background: partColor(parts.Heads?.color ?? "#8a9b72") }}>
+        {parts.Horns && (
+          <>
+            <span className="horn horn-left" style={{ borderBottomColor: partColor(parts.Horns.color) }} />
+            <span className="horn horn-right" style={{ borderBottomColor: partColor(parts.Horns.color) }} />
+          </>
+        )}
+        <span className="eye eye-left" />
+        <span className="eye eye-right" />
+      </span>
+    </button>
+  );
+}
+
+function SpeciesPair({
   equipped,
   compact = false,
   onClick,
@@ -276,63 +481,11 @@ function Creature({
   onClick?: () => void;
   style?: React.CSSProperties;
 }) {
-  const parts = Object.fromEntries(
-    categories.map((category) => [category, getPart(equipped[category])]),
-  ) as Partial<Record<Category, Part>>;
-  const bodyColor = parts.Bodies?.color ?? "#697b62";
-  const coreColor = parts.Cores?.color ?? "#65a391";
-  const wingColor = parts.Wings?.color ?? "#8aa47a";
-  const sizeClass = compact ? "creature creature--compact" : "creature";
-
   return (
-    <button className={sizeClass} onClick={onClick} style={style} aria-label="Kreatur bearbeiten">
-      {parts.Wings && (
-        <>
-          <span className="part wing wing-left" style={{ background: wingColor }} />
-          <span className="part wing wing-right" style={{ background: wingColor }} />
-        </>
-      )}
-      {parts.Tails && (
-        <span className="part tail" style={{ background: parts.Tails.color }} />
-      )}
-      {parts.Legs && (
-        <>
-          <span className="part leg leg-left" style={{ background: parts.Legs.color }} />
-          <span className="part leg leg-right" style={{ background: parts.Legs.color }} />
-        </>
-      )}
-      {parts.Feet && (
-        <>
-          <span className="part foot foot-left" style={{ background: parts.Feet.color }} />
-          <span className="part foot foot-right" style={{ background: parts.Feet.color }} />
-        </>
-      )}
-      {parts.Arms && (
-        <>
-          <span className="part arm arm-left" style={{ background: parts.Arms.color }} />
-          <span className="part arm arm-right" style={{ background: parts.Arms.color }} />
-        </>
-      )}
-      {parts.Hands && (
-        <>
-          <span className="part hand hand-left" style={{ background: parts.Hands.color }} />
-          <span className="part hand hand-right" style={{ background: parts.Hands.color }} />
-        </>
-      )}
-      <span className="body" style={{ background: bodyColor }}>
-        <span className="core" style={{ background: coreColor }} />
-      </span>
-      <span className="head" style={{ background: parts.Heads?.color ?? "#8a9b72" }}>
-        {parts.Horns && (
-          <>
-            <span className="horn horn-left" style={{ borderBottomColor: parts.Horns.color }} />
-            <span className="horn horn-right" style={{ borderBottomColor: parts.Horns.color }} />
-          </>
-        )}
-        <span className="eye eye-left" />
-        <span className="eye eye-right" />
-      </span>
-    </button>
+    <div className={compact ? "species-pair species-pair--compact" : "species-pair"} style={style}>
+      <Creature equipped={equipped} gender="female" compact={compact} onClick={onClick} />
+      <Creature equipped={equipped} gender="male" compact={compact} onClick={onClick} />
+    </div>
   );
 }
 
@@ -403,7 +556,20 @@ export default function Home() {
   const [deviceMode, setDeviceMode] = useState<"mobile" | "pc">("mobile");
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const [mapZoom, setMapZoom] = useState(1);
-  const [worldCreaturePosition, setWorldCreaturePosition] = useState({ x: 900, y: 600 });
+  const [worldCreaturePositions, setWorldCreaturePositions] = useState(worldStartPositions);
+  const [activeWorldCreature, setActiveWorldCreature] = useState<WorldCreatureKey>("female");
+  const [worldRoute, setWorldRoute] = useState<WorldRoute | null>(null);
+  const [worldPanelOpen, setWorldPanelOpen] = useState(false);
+  const [exploreArmed, setExploreArmed] = useState(false);
+  const [gatherArmed, setGatherArmed] = useState(false);
+  const [buildArmed, setBuildArmed] = useState(false);
+  const [selectedBuildKind, setSelectedBuildKind] = useState<BuildKind | null>(null);
+  const [selectedGatherTarget, setSelectedGatherTarget] = useState<GatherTarget | null>(null);
+  const [gatherTask, setGatherTask] = useState<GatherTask | null>(null);
+  const [buildTask, setBuildTask] = useState<BuildTask | null>(null);
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [carriedResources, setCarriedResources] = useState<Record<Resource, number>>({ wood: 0, stone: 0, food: 0 });
+  const [resourceHealth, setResourceHealth] = useState<Record<number, number>>({});
   const [worldAction, setWorldAction] = useState<WorldAction>("Bereit");
   const dragOrigin = useRef<{ pointerX: number; pointerY: number; x: number; y: number } | null>(null);
   const activePointers = useRef(new Map<number, { x: number; y: number }>());
@@ -420,8 +586,12 @@ export default function Home() {
 
   useEffect(() => {
     setSlots(normalizeSlots(loadState("earthcraft-v4-slots", initialSlots)));
-    setGlobal(loadState("earthcraft-v4-global", initialGlobal));
+    setGlobal(normalizeGlobal(loadState("earthcraft-v4-global", initialGlobal)));
   }, []);
+
+  useEffect(() => {
+    if (activeCreature > 2) setActiveCreature(0);
+  }, [activeCreature]);
 
   useEffect(() => {
     window.localStorage.setItem("earthcraft-v4-slots", JSON.stringify(slots));
@@ -456,6 +626,14 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, [ad]);
 
+  useEffect(() => {
+    if (!gatherTask || gatherTask.phase !== "toTarget") return;
+    const timer = window.setTimeout(() => {
+      setGatherTask((task) => task && task.targetIndex === gatherTask.targetIndex ? { ...task, phase: "mining" } : task);
+    }, gatherTask.travelMs);
+    return () => window.clearTimeout(timer);
+  }, [gatherTask]);
+
   const totals = useMemo(() => {
     const next = emptyStats();
     Object.values(currentCreature.equipped).forEach((id) => {
@@ -467,6 +645,100 @@ export default function Home() {
     });
     return next;
   }, [currentCreature]);
+
+  const miningPower = Math.max(5, totals.Sammeln);
+  const inventoryCapacity = 40 + totals.Sammeln * 2;
+  const carriedTotal = carriedResources.wood + carriedResources.stone + carriedResources.food;
+  const selectedBuildOption = buildOptions.find((option) => option.kind === selectedBuildKind) ?? null;
+
+  useEffect(() => {
+    if (!worldRoute) return;
+    const timer = window.setTimeout(() => {
+      setWorldRoute((route) => (route === worldRoute ? null : route));
+    }, worldRoute.durationMs);
+    return () => window.clearTimeout(timer);
+  }, [worldRoute]);
+
+  useEffect(() => {
+    if (!gatherTask || gatherTask.phase !== "mining") return;
+    const timer = window.setInterval(() => {
+      const currentHealth = resourceHealth[gatherTask.targetIndex] ?? stoneMaxHealth;
+      const nextHealth = Math.max(0, currentHealth - miningPower);
+      const gained = Math.max(1, Math.ceil(miningPower / 8));
+      const nextCarriedTotal = Math.min(inventoryCapacity, carriedTotal + gained);
+      const accepted = nextCarriedTotal - carriedTotal;
+      setResourceHealth((health) => ({ ...health, [gatherTask.targetIndex]: nextHealth }));
+      setCarriedResources((resources) => ({
+        ...resources,
+        [gatherTask.resource]: resources[gatherTask.resource] + accepted,
+      }));
+      if (nextHealth <= 0 || nextCarriedTotal >= inventoryCapacity) {
+        const travelMs = sendCreatureTo(tentPosition, gatherTask.creature);
+        setGatherTask({ ...gatherTask, phase: "toTent", travelMs });
+      }
+    }, 850);
+    return () => window.clearInterval(timer);
+  }, [carriedTotal, gatherTask, inventoryCapacity, miningPower, resourceHealth, worldCreaturePositions]);
+
+  useEffect(() => {
+    if (!gatherTask || gatherTask.phase !== "toTent") return;
+    const timer = window.setTimeout(() => {
+      if (carriedTotal > 0) {
+        setGlobal((value) => ({
+          ...value,
+          wood: value.wood + carriedResources.wood,
+          stone: value.stone + carriedResources.stone,
+          food: value.food + carriedResources.food,
+        }));
+      }
+      setCarriedResources({ wood: 0, stone: 0, food: 0 });
+      const remainingHealth = resourceHealth[gatherTask.targetIndex] ?? stoneMaxHealth;
+      if (remainingHealth > 0) {
+        const travelMs = sendCreatureTo(gatherTask.target, gatherTask.creature);
+        setGatherTask({ ...gatherTask, phase: "toTarget", travelMs });
+      } else {
+        setGatherTask(null);
+        setWorldRoute(null);
+        setWorldAction("Bereit");
+      }
+    }, gatherTask.travelMs);
+    return () => window.clearTimeout(timer);
+  }, [carriedResources, carriedTotal, gatherTask, resourceHealth, worldCreaturePositions]);
+
+  useEffect(() => {
+    if (!buildTask || buildTask.phase !== "toSite") return;
+    const timer = window.setTimeout(() => {
+      setBuildTask((task) => task && task.id === buildTask.id ? { ...task, phase: "building" } : task);
+    }, buildTask.travelMs);
+    return () => window.clearTimeout(timer);
+  }, [buildTask]);
+
+  useEffect(() => {
+    if (!buildTask || buildTask.phase !== "building") return;
+    const timer = window.setInterval(() => {
+      const buildPower = Math.max(6, totals.Bauen);
+      let finished = false;
+      setBuildings((currentBuildings) =>
+        currentBuildings.map((building) => {
+          if (building.id !== buildTask.id) return building;
+          const progress = Math.min(100, building.progress + buildPower);
+          finished = progress >= 100;
+          return { ...building, progress, complete: finished };
+        }),
+      );
+      if (finished) {
+        setBuildTask(null);
+        setWorldRoute(null);
+        setWorldAction("Bereit");
+        setSlots((saveSlots) =>
+          saveSlots.map((slot, index) =>
+            index === activeSlot ? { ...slot, progress: Math.min(100, slot.progress + 3) } : slot,
+          ),
+        );
+      }
+    }, 700);
+    return () => window.clearInterval(timer);
+  }, [activeSlot, buildTask, totals.Bauen]);
 
   const filteredParts = allParts.filter((part) => {
     const byCategory = categoryFilter === "Alle" || part.category === categoryFilter;
@@ -493,8 +765,8 @@ export default function Home() {
               progress: 1,
               creatures: [
                 defaultCreature(`Spezies ${index + 1}`),
-                { name: "Kreatur 2", equipped: {} },
-                { name: "Kreatur 3", equipped: {} },
+                { name: "Spezies 2", equipped: {} },
+                { name: "Spezies 3", equipped: {} },
               ],
             }
           : slot,
@@ -523,6 +795,24 @@ export default function Home() {
         ),
       );
     }
+  }
+
+  function renameActiveSpecies() {
+    const nextName = window.prompt("Name der Spezies", currentCreature.name)?.trim();
+    if (!nextName) return;
+    setSlots((saveSlots) =>
+      saveSlots.map((slot, slotIndex) =>
+        slotIndex === activeSlot
+          ? {
+              ...slot,
+              creatureName: activeCreature === 0 ? nextName : slot.creatureName,
+              creatures: slot.creatures.map((creature, creatureIndex) =>
+                creatureIndex === activeCreature ? { ...creature, name: nextName } : creature,
+              ),
+            }
+          : slot,
+      ),
+    );
   }
 
   function finishAd() {
@@ -590,6 +880,8 @@ export default function Home() {
   }
 
   function handleMapPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    const targetElement = event.target;
+    if (targetElement instanceof Element && targetElement.closest(".creature, .world-node, .world-house")) return;
     activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     event.currentTarget.setPointerCapture(event.pointerId);
     if (activePointers.current.size === 2) {
@@ -631,15 +923,23 @@ export default function Home() {
       event &&
       activePointers.current.size === 1 &&
       dragOrigin.current &&
-      event.target === event.currentTarget &&
       Math.hypot(event.clientX - dragOrigin.current.pointerX, event.clientY - dragOrigin.current.pointerY) < 6
     ) {
-      const rect = event.currentTarget.getBoundingClientRect();
-      setWorldCreaturePosition({
-        x: Math.min(1650, Math.max(150, (event.clientX - rect.left - rect.width / 2 - mapOffset.x) / mapZoom + 900)),
-        y: Math.min(1050, Math.max(120, (event.clientY - rect.top - rect.height / 2 - mapOffset.y) / mapZoom + 600)),
-      });
-      setWorldAction("Erkundet");
+      const targetElement = event.target;
+      const clickedWorldObject = targetElement instanceof Element && targetElement.closest(".creature, .world-node, .world-house");
+      if ((exploreArmed || buildArmed) && !clickedWorldObject) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const target = {
+          x: Math.min(1650, Math.max(150, (event.clientX - rect.left - rect.width / 2 - mapOffset.x) / mapZoom + 900)),
+          y: Math.min(1050, Math.max(120, (event.clientY - rect.top - rect.height / 2 - mapOffset.y) / mapZoom + 600)),
+        };
+        if (buildArmed) {
+          startBuilding(target);
+        } else if (sendCreatureTo(target)) {
+          setWorldAction("Erkundet");
+          setExploreArmed(false);
+        }
+      }
     }
     if (event) activePointers.current.delete(event.pointerId);
     if (activePointers.current.size < 2) pinchOrigin.current = null;
@@ -656,20 +956,113 @@ export default function Home() {
     setMapZoom(1);
   }
 
+  function movementDuration(from: { x: number; y: number }, to: { x: number; y: number }) {
+    const distance = Math.hypot(to.x - from.x, to.y - from.y);
+    const speedMultiplier = 0.72 + totals.Geschwindigkeit / 34;
+    return Math.max(420, Math.min(5400, 380 + (distance * 4.1) / speedMultiplier));
+  }
+
+  function sendCreatureTo(target: { x: number; y: number }, creature: WorldCreatureKey = activeWorldCreature) {
+    const from = worldCreaturePositions[creature];
+    const durationMs = movementDuration(from, target);
+    setWorldRoute({ from, to: target, creature, durationMs });
+    setWorldCreaturePositions((positions) => ({ ...positions, [creature]: target }));
+    return durationMs;
+  }
+
+  function resourceForKind(kind: string): Resource {
+    if (kind === "rock") return "stone";
+    if (kind === "flower") return "food";
+    return "wood";
+  }
+
+  function startBuilding(target: { x: number; y: number }) {
+    const kind = selectedBuildKind ?? "hut";
+    const id = Date.now();
+    const creature = activeWorldCreature;
+    const travelMs = sendCreatureTo(target, creature);
+    setWorldPanelOpen(true);
+    setWorldAction("Baut");
+    setBuildArmed(false);
+    setExploreArmed(false);
+    setGatherArmed(false);
+    setSelectedGatherTarget(null);
+    setGatherTask(null);
+    setBuildings((currentBuildings) => [
+      ...currentBuildings,
+      { id, kind, x: target.x, y: target.y, progress: 0, complete: false, builder: creature },
+    ]);
+    setBuildTask({ id, target, creature, travelMs, phase: "toSite" });
+  }
+
+  function startGathering(targetIndex: number, target: { x: number; y: number }, kind: string) {
+    setWorldPanelOpen(true);
+    setWorldAction("Sammelt");
+    setGatherArmed(false);
+    setExploreArmed(false);
+    setBuildArmed(false);
+    setSelectedGatherTarget(null);
+    const travelMs = sendCreatureTo(target);
+    setGatherTask({ targetIndex, target, creature: activeWorldCreature, resource: resourceForKind(kind), travelMs, phase: "toTarget" });
+  }
+
+  function selectGatherTarget(index: number, target: { x: number; y: number }, kind: string) {
+    setSelectedGatherTarget({ index, kind, target, resource: resourceForKind(kind) });
+    setWorldPanelOpen(true);
+    setWorldAction("Sammelt");
+    setExploreArmed(false);
+    setBuildArmed(false);
+    setGatherArmed(false);
+    setWorldRoute(null);
+  }
+
+  function handleWorldNodeActivate(
+    kind: string,
+    index: number,
+    position: { x: number; y: number },
+  ) {
+    if (gatherableKinds.includes(kind)) {
+      if (gatherArmed) {
+        startGathering(index, position, kind);
+        return;
+      }
+      selectGatherTarget(index, position, kind);
+      return;
+    }
+    if (kind === "shrine") performWorldAction("Baut");
+    else if (gatherableKinds.includes(kind)) performWorldAction("Sammelt");
+    else performWorldAction("Erkundet");
+  }
+
   function performWorldAction(action: WorldAction) {
     setWorldAction(action);
+    setWorldPanelOpen(true);
     if (action === "Sammelt") {
-      setGlobal((value) => ({ ...value, coins: value.coins + 5 }));
+      if (selectedGatherTarget) {
+        startGathering(selectedGatherTarget.index, selectedGatherTarget.target, selectedGatherTarget.kind);
+        return;
+      }
+      setGatherArmed(true);
+      setExploreArmed(false);
+      setBuildArmed(false);
+      setWorldRoute(null);
+      setGatherTask(null);
     }
     if (action === "Baut") {
-      setSlots((saveSlots) =>
-        saveSlots.map((slot, index) =>
-          index === activeSlot ? { ...slot, progress: Math.min(100, slot.progress + 2) } : slot,
-        ),
-      );
+      setBuildArmed(false);
+      setSelectedBuildKind(null);
+      setExploreArmed(false);
+      setGatherArmed(false);
+      setSelectedGatherTarget(null);
+      setGatherTask(null);
+      setWorldRoute(null);
     }
     if (action === "Erkundet") {
-      setMapOffset((offset) => ({ x: offset.x - 90, y: offset.y - 55 }));
+      setGatherArmed(false);
+      setBuildArmed(false);
+      setSelectedGatherTarget(null);
+      setGatherTask(null);
+      setExploreArmed(true);
     }
   }
 
@@ -677,7 +1070,7 @@ export default function Home() {
     <main className="game-shell">
       <link rel="preload" as="image" href="/reference-lobby-empty.jpg" />
       <section className={`phone-frame ${deviceMode === "pc" ? "pc-mode" : ""}`} aria-label="2D Mobile God Game Prototype">
-        {screen !== "slots" && <UtilityBar global={global} onMenu={() => setMenuOpen(true)} />}
+        {screen !== "slots" && screen !== "world" && <UtilityBar global={global} onMenu={() => setMenuOpen(true)} />}
 
         {screen === "slots" && (
           <section className="slot-screen">
@@ -693,7 +1086,7 @@ export default function Home() {
                   <strong>{slot.used ? slot.creatureName : "Neue Welt starten"}</strong>
                   {slot.used ? (
                     <span>
-                      Fortschritt {slot.progress}% · {slot.creatures.filter((creature) => Object.keys(creature.equipped).length > 0).length}/3 Kreaturen
+                      Fortschritt {slot.progress}% · {slot.creatures.filter((creature) => Object.keys(creature.equipped).length > 0).length}/3 Species
                     </span>
                   ) : (
                     <span>Leere Erde, bereit fur den ersten Atemzug</span>
@@ -730,8 +1123,8 @@ export default function Home() {
                 activeCreature={activeCreature}
                 onChoose={chooseCreature}
               />
-              <Creature equipped={currentCreature.equipped} onClick={() => setScreen("editor")} />
-              <p>{currentCreature.name}</p>
+              <SpeciesPair equipped={currentCreature.equipped} onClick={() => setScreen("editor")} />
+              <button className="species-name-button" onClick={renameActiveSpecies}>{currentCreature.name}</button>
             </div>
             <Hotbar setScreen={setScreen} />
           </section>
@@ -745,7 +1138,7 @@ export default function Home() {
                 <span>CREATURE STATS</span>
                 <StatBars totals={totals} />
               </div>
-              <Creature equipped={currentCreature.equipped} />
+              <SpeciesPair equipped={currentCreature.equipped} />
             </div>
             <CreatureSlots
               creatures={current.creatures}
@@ -893,9 +1286,20 @@ export default function Home() {
 
         {screen === "world" && (
           <section className="world-screen">
+            <ResourceBar global={global} />
             <TopBack label="World" onBack={() => setScreen("lobby")} />
             <div
               className={`map ${dragOrigin.current ? "is-dragging" : ""}`}
+              onContextMenu={(event) => {
+                event.preventDefault();
+                setWorldPanelOpen(false);
+                setExploreArmed(false);
+                setGatherArmed(false);
+                setBuildArmed(false);
+                setSelectedBuildKind(null);
+                setSelectedGatherTarget(null);
+                setWorldAction("Bereit");
+              }}
               onPointerDown={handleMapPointerDown}
               onPointerMove={handleMapPointerMove}
               onPointerUp={handleMapPointerUp}
@@ -921,57 +1325,161 @@ export default function Home() {
                 }}
               >
                 <div className="world-ground" />
-                <div className="world-river" />
                 <div className="world-path" />
+                {worldRoute && (
+                  <svg className="world-route" viewBox="0 0 1800 1200" aria-hidden="true">
+                    <line x1={worldRoute.from.x} y1={worldRoute.from.y} x2={worldRoute.to.x} y2={worldRoute.to.y} />
+                  </svg>
+                )}
+                {worldRoute && (
+                  <span className="world-target" style={{ left: worldRoute.to.x, top: worldRoute.to.y }} aria-hidden="true" />
+                )}
                 {Array.from({ length: 96 }, (_, index) => {
-                  const kinds = ["tree", "tree", "pine", "bush", "rock", "flower", "tree", "shrine"];
+                  const kinds = ["tree", "pine", "bush", "rock", "flower", "tree", "pine", "bush"];
                   const kind = kinds[index % kinds.length];
                   const left = (index * 173 + (index % 5) * 47) % 1700;
                   const top = (index * 97 + (index % 7) * 31) % 1040;
                   const scale = 0.72 + (index % 5) * 0.1;
+                  const health = resourceHealth[index] ?? stoneMaxHealth;
+                  const isGatherable = gatherableKinds.includes(kind);
+                  if (isGatherable && health <= 0) return null;
                   return (
                     <span
-                      className={`world-node ${kind}`}
+                      className={`world-node ${kind} ${
+                        gatherArmed && isGatherable ? "is-selectable" : ""
+                      } ${selectedGatherTarget?.index === index ? "is-selected" : ""}`}
                       key={index}
                       role="button"
                       tabIndex={0}
-                      aria-label={kind === "shrine" ? "Schrein zum Bauen" : kind === "rock" || kind === "flower" ? "Ressource zum Sammeln" : "Weltobjekt"}
-                      onClick={() => {
-                        if (kind === "shrine") performWorldAction("Baut");
-                        else if (kind === "rock" || kind === "flower") performWorldAction("Sammelt");
-                        else performWorldAction("Erkundet");
+                      aria-label={isGatherable ? "Ressource zum Sammeln" : "Weltobjekt"}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onPointerUp={(event) => {
+                        event.stopPropagation();
+                        handleWorldNodeActivate(kind, index, { x: left, y: top });
                       }}
                       onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") event.currentTarget.click();
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleWorldNodeActivate(kind, index, { x: left, y: top });
+                        }
                       }}
                       style={{ left, top, "--node-scale": scale } as React.CSSProperties}
                     >
                       {(kind === "tree" || kind === "pine" || kind === "bush") && <><i /><b /><em /></>}
-                      {kind === "shrine" && <><i /><b /></>}
+                      {isGatherable && gatherTask?.targetIndex === index && (
+                        <small className="rock-health" style={{ "--rock-health": health / stoneMaxHealth } as React.CSSProperties} />
+                      )}
                     </span>
                   );
                 })}
+                {buildings.map((building) => (
+                  <span
+                    className={`world-house ${building.kind} ${building.complete ? "is-complete" : "is-building"}`}
+                    key={building.id}
+                    style={{
+                      left: building.x,
+                      top: building.y,
+                      "--build-progress": building.progress / 100,
+                    } as React.CSSProperties}
+                    aria-hidden="true"
+                  >
+                    <i />
+                    <b />
+                    <em />
+                    {!building.complete && <small />}
+                  </span>
+                ))}
+                <span className="world-tent" style={{ left: tentPosition.x, top: tentPosition.y }} aria-hidden="true">
+                  <i />
+                  <b />
+                </span>
                 <Creature
                   equipped={currentCreature.equipped}
+                  gender="female"
                   compact
-                  onClick={() => setScreen("editor")}
-                  style={{ left: worldCreaturePosition.x, top: worldCreaturePosition.y }}
+                  onClick={() => {
+                    setActiveWorldCreature("female");
+                    setWorldPanelOpen(true);
+                  }}
+                  style={{
+                    left: worldCreaturePositions.female.x,
+                    top: worldCreaturePositions.female.y,
+                    "--move-duration": `${worldRoute?.creature === "female" ? worldRoute.durationMs : 0}ms`,
+                  } as React.CSSProperties}
                 />
-                <span className="map-creature one" />
-                <span className="map-creature two" />
+                <Creature
+                  equipped={currentCreature.equipped}
+                  gender="male"
+                  compact
+                  onClick={() => {
+                    setActiveWorldCreature("male");
+                    setWorldPanelOpen(true);
+                  }}
+                  style={{
+                    left: worldCreaturePositions.male.x,
+                    top: worldCreaturePositions.male.y,
+                    "--move-duration": `${worldRoute?.creature === "male" ? worldRoute.durationMs : 0}ms`,
+                  } as React.CSSProperties}
+                />
               </div>
             </div>
-            <div className="world-actions" aria-label="Kreaturenaktionen">
+            {worldPanelOpen && worldAction === "Baut" && !buildTask && (
+              <div className="build-catalog" aria-label="Gebaeude auswaehlen">
+                {buildOptions.map((option) => (
+                  <button
+                    className={selectedBuildKind === option.kind ? "is-selected" : ""}
+                    key={option.kind}
+                    onClick={() => {
+                      setSelectedBuildKind(option.kind);
+                      setBuildArmed(true);
+                      setExploreArmed(false);
+                      setGatherArmed(false);
+                      setSelectedGatherTarget(null);
+                    }}
+                  >
+                    <span className={`build-icon ${option.kind}`} aria-hidden="true">
+                      <i />
+                      <b />
+                    </span>
+                    <strong>{option.name}</strong>
+                    <small>{option.description}</small>
+                    <em>{option.bonus}</em>
+                    <span className="build-cost">
+                      {Object.entries(option.cost).map(([resource, amount]) => (
+                        <span key={resource}>{resource === "wood" ? "Holz" : resource === "stone" ? "Stein" : "Essen"} {amount}</span>
+                      ))}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className={`world-actions ${worldPanelOpen ? "is-open" : ""} ${exploreArmed || gatherArmed || buildArmed || selectedGatherTarget ? "is-targeting" : ""}`} aria-label="Kreaturenaktionen">
               <div className="world-active-creature">
                 <span>AKTIVE KREATUR</span>
-                <strong>{currentCreature.name}</strong>
-                <small>{worldAction}</small>
+                <strong>{currentCreature.name} {activeWorldCreature === "female" ? "Frau" : "Mann"}</strong>
+                <small>
+                  {selectedGatherTarget
+                    ? "Abbauen bereit"
+                    : gatherArmed
+                    ? "Ressource wählen"
+                    : buildArmed
+                      ? `${selectedBuildOption?.name ?? "Gebaeude"} setzen`
+                      : buildTask?.phase === "building"
+                        ? `Baut ${buildings.find((building) => building.id === buildTask.id)?.progress ?? 0}%`
+                        : buildTask?.phase === "toSite"
+                          ? "Geht zum Bauplatz"
+                          : gatherTask?.phase === "mining"
+                            ? `${carriedTotal}/${inventoryCapacity}`
+                            : exploreArmed
+                              ? "Ziel wählen"
+                              : worldAction}
+                </small>
               </div>
               <button className={worldAction === "Sammelt" ? "is-active" : ""} onClick={() => performWorldAction("Sammelt")}>
-                <TreePine size={16} /> Sammeln
+                <TreePine size={16} /> {selectedGatherTarget ? "Abbauen" : "Sammeln"}
               </button>
               <button className={worldAction === "Baut" ? "is-active" : ""} onClick={() => performWorldAction("Baut")}>
-                <Mountain size={16} /> Bauen
+                <Mountain size={16} /> {buildArmed ? "Platz" : "Bauen"}
               </button>
               <button className={worldAction === "Erkundet" ? "is-active" : ""} onClick={() => performWorldAction("Erkundet")}>
                 <Wind size={16} /> Erkunden
@@ -1068,6 +1576,28 @@ function UtilityBar({
       <button onClick={onMenu} aria-label="Menu offnen">
         <Menu size={21} />
       </button>
+    </header>
+  );
+}
+
+function ResourceBar({ global }: { global: GlobalState }) {
+  return (
+    <header className="resource-bar" aria-label="Ressourcen">
+      <span>
+        <i className="resource-icon wood-icon" aria-hidden="true" />
+        <b>Holz</b>
+        {global.wood.toLocaleString("de-DE")}
+      </span>
+      <span>
+        <i className="resource-icon stone-icon" aria-hidden="true" />
+        <b>Stein</b>
+        {global.stone.toLocaleString("de-DE")}
+      </span>
+      <span>
+        <i className="resource-icon food-icon" aria-hidden="true" />
+        <b>Essen</b>
+        {global.food.toLocaleString("de-DE")}
+      </span>
     </header>
   );
 }
