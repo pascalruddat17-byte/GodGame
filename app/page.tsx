@@ -716,7 +716,10 @@ export default function Home() {
                     onClick={() => equip(part)}
                   >
                     <PartIcon part={part} />
-                    <span>{categoryNames[part.category]}</span>
+                    <span className="part-description">
+                      <b>{part.name}</b>
+                      <i>{part.pack} · {categoryNames[part.category]}</i>
+                    </span>
                     <small className="part-stat-strip">
                       {stats.slice(0, 3).map((stat) => (
                         <i key={stat}>{statShortNames[stat]} {part.stats[stat] >= 0 ? "+" : ""}{part.stats[stat]}</i>

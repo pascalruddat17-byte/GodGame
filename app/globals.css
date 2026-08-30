@@ -1271,6 +1271,35 @@ button:active {
   font-weight: 700;
 }
 
+.part-description {
+  display: grid;
+  gap: 1px;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+}
+
+.part-description b,
+.part-description i {
+  display: block;
+  font-style: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.part-description b {
+  color: #293125;
+  font-size: 9px;
+  line-height: 1.1;
+}
+
+.part-description i {
+  color: #656451;
+  font-size: 8px;
+  line-height: 1.1;
+}
+
 .inventory-item.is-equipped {
   background: rgba(189, 201, 162, 0.8);
   border-color: #435f4a;
