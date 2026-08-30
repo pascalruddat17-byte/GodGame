@@ -1615,8 +1615,15 @@ button:active {
 
 .world-ground {
   background:
-    linear-gradient(180deg, rgba(13, 51, 56, 0.04), rgba(11, 54, 38, 0.16)),
-    url("/reference-lobby-empty.jpg") center / 1800px 1200px no-repeat;
+    linear-gradient(180deg, rgba(19, 74, 66, 0.02), rgba(29, 94, 53, 0.2)),
+    url("/reference-lobby-empty.jpg") center / cover no-repeat;
+  inset: 0;
+  position: absolute;
+}
+
+.world-ground::after {
+  background: linear-gradient(180deg, rgba(61, 137, 78, 0.08), transparent 40%, rgba(21, 85, 47, 0.22));
+  content: "";
   inset: 0;
   position: absolute;
 }
@@ -1635,6 +1642,12 @@ button:active {
   transform: scale(var(--node-scale));
   transform-origin: bottom center;
   z-index: 2;
+}
+
+.world-node.tree,
+.world-node.pine,
+.world-node.bush {
+  display: none;
 }
 
 .world-node.tree,
@@ -1785,9 +1798,7 @@ button:active {
 }
 
 .world-screen .map {
-  background:
-    linear-gradient(rgba(55, 122, 70, 0.22), rgba(36, 102, 57, 0.18)),
-    url("/reference-lobby-empty.jpg") center / 620px 1103px repeat;
+  background: #4e8a58;
   border: 0;
   border-radius: 0;
   height: 100%;
@@ -1795,7 +1806,7 @@ button:active {
 }
 
 .world-screen .world-ground {
-  display: none;
+  display: block;
 }
 
 .world-screen .top-back strong {
@@ -1952,12 +1963,38 @@ button:active {
 }
 
 .map-creature {
-  background: #f1e6bb;
-  border: 2px solid rgba(31, 38, 31, 0.22);
-  border-radius: 56% 44% 50% 42%;
-  height: 24px;
+  background: #d58a3e;
+  border: 2px solid #4b392b;
+  border-radius: 45% 45% 35% 35%;
+  box-shadow: 0 4px 0 rgba(37, 64, 40, 0.28);
+  height: 28px;
   position: absolute;
-  width: 32px;
+  width: 24px;
+  z-index: 4;
+}
+
+.map-creature::before {
+  background: #6da14d;
+  border: 2px solid #4b392b;
+  border-radius: 50%;
+  content: "";
+  height: 20px;
+  left: 0;
+  position: absolute;
+  top: -17px;
+  width: 24px;
+}
+
+.map-creature::after {
+  background: #273d2c;
+  border-radius: 50%;
+  box-shadow: 9px 0 #273d2c;
+  content: "";
+  height: 3px;
+  left: 5px;
+  position: absolute;
+  top: -9px;
+  width: 3px;
 }
 
 .map-creature.one {
