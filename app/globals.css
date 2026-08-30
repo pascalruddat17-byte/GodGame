@@ -546,6 +546,58 @@
   z-index: 3;
 }
 
+.creature-slots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  z-index: 7;
+}
+
+.creature-stage > .creature-slots {
+  position: absolute;
+  top: -8px;
+}
+
+.creature-slots button {
+  align-items: center;
+  background: rgba(8, 55, 51, 0.86);
+  border: 1px solid rgba(177, 225, 193, 0.35);
+  border-radius: 6px;
+  color: #eaf0d9;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 42px;
+  min-width: 82px;
+  padding: 5px 8px;
+}
+
+.creature-slots button.is-active {
+  background: #c8782e;
+  border-color: #ffe5a8;
+  color: #fff8e7;
+}
+
+.creature-slots button span {
+  font-size: 10px;
+  opacity: 0.78;
+}
+
+.creature-slots button strong {
+  align-items: center;
+  display: flex;
+  font-size: 11px;
+  gap: 3px;
+  line-height: 1;
+  max-width: 76px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .creature {
   background: transparent;
   border: 0;

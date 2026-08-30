@@ -12,6 +12,7 @@ import {
   Mountain,
   PackageOpen,
   Play,
+  Plus,
   Rabbit,
   Save,
   ScrollText,
@@ -58,7 +59,11 @@ type SlotSave = {
   used: boolean;
   creatureName: string;
   progress: number;
-  creatures: number;
+  creatures: CreatureSave[];
+};
+
+type CreatureSave = {
+  name: string;
   equipped: Partial<Record<Category, string>>;
 };
 
@@ -178,16 +183,22 @@ const initialSlots: SlotSave[] = [
     used: true,
     creatureName: "Mira-Spezies",
     progress: 12,
-    creatures: 3,
-    equipped: {
-      Bodies: "forest-mutant-bodies",
-      Heads: "forest-mutant-heads",
-      Legs: "swamp-tech-legs",
-      Cores: "river-glass-cores",
-    },
+    creatures: [
+      {
+        name: "Mira-Spezies",
+        equipped: {
+          Bodies: "forest-mutant-bodies",
+          Heads: "forest-mutant-heads",
+          Legs: "swamp-tech-legs",
+          Cores: "river-glass-cores",
+        },
+      },
+      { name: "Kreatur 2", equipped: {} },
+      { name: "Kreatur 3", equipped: {} },
+    ],
   },
-  { used: false, creatureName: "Neue Welt", progress: 0, creatures: 0, equipped: {} },
-  { used: false, creatureName: "Neue Welt", progress: 0, creatures: 0, equipped: {} },
+  { used: false, creatureName: "Neue Welt", progress: 0, creatures: [] },
+  { used: false, creatureName: "Neue Welt", progress: 0, creatures: [] },
 ];
 
 const initialGlobal: GlobalState = {
@@ -209,6 +220,32 @@ function loadState<T>(key: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function defaultCreature(name = "Neue Kreatur"): CreatureSave {
+  return {
+    name,
+    equipped: {
+      Bodies: "forest-mutant-bodies",
+      Heads: "forest-mutant-heads",
+      Cores: "forest-mutant-cores",
+    },
+  };
+}
+
+function normalizeSlots(raw: SlotSave[]): SlotSave[] {
+  return raw.map((slot) => {
+    const legacy = (slot as SlotSave & { equipped?: CreatureSave["equipped"] }).equipped;
+    const creatures = Array.isArray(slot.creatures)
+      ? slot.creatures
+      : [{ name: slot.creatureName, equipped: legacy ?? {} }];
+    return {
+      ...slot,
+      creatures: Array.from({ length: 3 }, (_, index) =>
+        creatures[index] ?? { name: `Kreatur ${index + 1}`, equipped: {} },
+      ),
+    };
+  });
 }
 
 function getPart(id?: string) {
@@ -312,20 +349,50 @@ function StatBars({ totals }: { totals: Record<Stat, number> }) {
   );
 }
 
+function CreatureSlots({
+  creatures,
+  activeCreature,
+  onChoose,
+}: {
+  creatures: CreatureSave[];
+  activeCreature: number;
+  onChoose: (index: number) => void;
+}) {
+  return (
+    <div className="creature-slots" aria-label="Kreaturen-Slots">
+      {creatures.slice(0, 3).map((creature, index) => {
+        const isCreated = Object.keys(creature.equipped).length > 0;
+        return (
+          <button
+            className={activeCreature === index ? "is-active" : ""}
+            key={index}
+            onClick={() => onChoose(index)}
+          >
+            <span>Slot {index + 1}</span>
+            <strong>{isCreated ? creature.name : <><Plus size={14} /> Neu</>}</strong>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("slots");
   const [slots, setSlots] = useState<SlotSave[]>(initialSlots);
   const [global, setGlobal] = useState<GlobalState>(initialGlobal);
   const [activeSlot, setActiveSlot] = useState(0);
+  const [activeCreature, setActiveCreature] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category | "Alle">("Alle");
   const [packFilter, setPackFilter] = useState<Pack | "Alle">("Alle");
   const [ad, setAd] = useState<null | { reward?: "coins" | "part"; backTo: Screen }>(null);
   const [adCountdown, setAdCountdown] = useState(3);
   const current = slots[activeSlot];
+  const currentCreature = current.creatures[activeCreature] ?? current.creatures[0] ?? defaultCreature();
 
   useEffect(() => {
-    setSlots(loadState("earthcraft-v4-slots", initialSlots));
+    setSlots(normalizeSlots(loadState("earthcraft-v4-slots", initialSlots)));
     setGlobal(loadState("earthcraft-v4-global", initialGlobal));
   }, []);
 
@@ -348,7 +415,7 @@ export default function Home() {
 
   const totals = useMemo(() => {
     const next = emptyStats();
-    Object.values(current.equipped).forEach((id) => {
+    Object.values(currentCreature.equipped).forEach((id) => {
       const part = getPart(id);
       if (!part) return;
       stats.forEach((stat) => {
@@ -356,7 +423,7 @@ export default function Home() {
       });
     });
     return next;
-  }, [current.equipped]);
+  }, [currentCreature]);
 
   const filteredParts = allParts.filter((part) => {
     const byCategory = categoryFilter === "Alle" || part.category === categoryFilter;
@@ -374,17 +441,38 @@ export default function Home() {
               used: true,
               creatureName: `Spezies ${index + 1}`,
               progress: 1,
-              creatures: 1,
-              equipped: {
-                Bodies: "forest-mutant-bodies",
-                Heads: "forest-mutant-heads",
-                Cores: "forest-mutant-cores",
-              },
+              creatures: [
+                defaultCreature(`Spezies ${index + 1}`),
+                { name: "Kreatur 2", equipped: {} },
+                { name: "Kreatur 3", equipped: {} },
+              ],
             }
           : slot,
       ),
     );
+    setActiveCreature(0);
     setAd({ backTo: "lobby" });
+  }
+
+  function chooseCreature(index: number) {
+    if (!current.creatures[index]) return;
+    setActiveCreature(index);
+    if (Object.keys(current.creatures[index].equipped).length === 0) {
+      setSlots((saveSlots) =>
+        saveSlots.map((slot, slotIndex) =>
+          slotIndex === activeSlot
+            ? {
+                ...slot,
+                creatures: slot.creatures.map((creature, creatureIndex) =>
+                  creatureIndex === index
+                    ? defaultCreature(`Spezies ${index + 1}`)
+                    : creature,
+                ),
+              }
+            : slot,
+        ),
+      );
+    }
   }
 
   function finishAd() {
@@ -412,9 +500,15 @@ export default function Home() {
         slotIndex === activeSlot
           ? {
               ...slot,
-              equipped: { ...slot.equipped, [part.category]: part.id },
-              progress: Math.max(slot.progress, 4 + Object.keys(slot.equipped).length * 3),
-              creatures: Math.max(slot.creatures, 1),
+              creatures: slot.creatures.map((creature, creatureIndex) =>
+                creatureIndex === activeCreature
+                  ? { ...creature, equipped: { ...creature.equipped, [part.category]: part.id } }
+                  : creature,
+              ),
+              progress: Math.max(
+                slot.progress,
+                4 + Object.keys(slot.creatures[activeCreature]?.equipped ?? {}).length * 3,
+              ),
             }
           : slot,
       ),
@@ -464,7 +558,7 @@ export default function Home() {
                   <strong>{slot.used ? slot.creatureName : "Neue Welt starten"}</strong>
                   {slot.used ? (
                     <span>
-                      Fortschritt {slot.progress}% · {slot.creatures} Kreaturen
+                      Fortschritt {slot.progress}% · {slot.creatures.filter((creature) => Object.keys(creature.equipped).length > 0).length}/3 Kreaturen
                     </span>
                   ) : (
                     <span>Leere Erde, bereit fur den ersten Atemzug</span>
@@ -485,8 +579,13 @@ export default function Home() {
               aria-hidden="true"
             />
             <div className="creature-stage">
-              <Creature equipped={current.equipped} onClick={() => setScreen("editor")} />
-              <p>{current.creatureName}</p>
+              <CreatureSlots
+                creatures={current.creatures}
+                activeCreature={activeCreature}
+                onChoose={chooseCreature}
+              />
+              <Creature equipped={currentCreature.equipped} onClick={() => setScreen("editor")} />
+              <p>{currentCreature.name}</p>
             </div>
             <Hotbar setScreen={setScreen} />
           </section>
@@ -500,8 +599,13 @@ export default function Home() {
               <div className="slot-point point-wing">Flugel</div>
               <div className="slot-point point-core">Kern</div>
               <div className="slot-point point-tail">Schwanz</div>
-              <Creature equipped={current.equipped} />
+              <Creature equipped={currentCreature.equipped} />
             </div>
+            <CreatureSlots
+              creatures={current.creatures}
+              activeCreature={activeCreature}
+              onChoose={chooseCreature}
+            />
             <StatBars totals={totals} />
             <div className="inventory-grid">
               {allParts
@@ -509,7 +613,7 @@ export default function Home() {
                 .map((part) => (
                   <button
                     className={`inventory-item ${
-                      current.equipped[part.category] === part.id ? "is-equipped" : ""
+                      currentCreature.equipped[part.category] === part.id ? "is-equipped" : ""
                     }`}
                     key={part.id}
                     onClick={() => equip(part)}
@@ -596,7 +700,7 @@ export default function Home() {
               {Array.from({ length: 34 }, (_, index) => (
                 <span className={`map-tile tile-${index % 7}`} key={index} />
               ))}
-              <Creature equipped={current.equipped} compact />
+              <Creature equipped={currentCreature.equipped} compact />
               <span className="map-creature one" />
               <span className="map-creature two" />
             </div>
@@ -633,6 +737,7 @@ export default function Home() {
                   key={index}
                   onClick={() => {
                     setActiveSlot(index);
+                    setActiveCreature(0);
                     setMenuOpen(false);
                     setAd({ backTo: "lobby" });
                   }}
