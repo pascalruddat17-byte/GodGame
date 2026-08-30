@@ -102,6 +102,14 @@ const stats: Stat[] = [
   "Geschwindigkeit",
 ];
 
+const statShortNames: Record<Stat, string> = {
+  Leben: "LP",
+  Angriff: "ATK",
+  Sammeln: "SAM",
+  Bauen: "BAU",
+  Geschwindigkeit: "SPD",
+};
+
 const packStyles: Record<Pack, { color: string; prefix: string }> = {
   "Forest-Mutant": { color: "#5c9b3b", prefix: "Forest-Mutant" },
   "Swamp-Tech": { color: "#247f86", prefix: "Swamp-Tech" },
@@ -333,6 +341,12 @@ function PartIcon({ part }: { part: Part }) {
   );
 }
 
+function partSummary(part: Part) {
+  return stats
+    .map((stat) => `${stat}: ${part.stats[stat] >= 0 ? "+" : ""}${part.stats[stat]}`)
+    .join(" · ");
+}
+
 function StatBars({ totals }: { totals: Record<Stat, number> }) {
   return (
     <div className="stat-list">
@@ -389,6 +403,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category | "Alle">("Alle");
   const [packFilter, setPackFilter] = useState<Pack | "Alle">("Alle");
+  const [editorCategory, setEditorCategory] = useState<Category | "Alle">("Alle");
   const [ad, setAd] = useState<null | { reward?: "coins" | "part"; backTo: Screen }>(null);
   const [adCountdown, setAdCountdown] = useState(3);
   const current = slots[activeSlot];
@@ -450,6 +465,12 @@ export default function Home() {
     const isAvailableToBuy = !global.unlocked.includes(part.id);
     return byCategory && byPack && isAvailableToBuy;
   });
+
+  const editorParts = allParts.filter(
+    (part) =>
+      global.unlocked.includes(part.id) &&
+      (editorCategory === "Alle" || part.category === editorCategory),
+  );
 
   function chooseSlot(index: number) {
     setActiveSlot(index);
@@ -660,21 +681,56 @@ export default function Home() {
               onChoose={chooseCreature}
             />
             <StatBars totals={totals} />
+            <div className="builder-heading">
+              <div>
+                <span>GENETIC LOADOUT</span>
+                <strong>Körperteile wählen</strong>
+              </div>
+              <b>{Object.keys(currentCreature.equipped).length}/10</b>
+            </div>
+            <div className="builder-filter" aria-label="Körperteil-Kategorie">
+              <button
+                className={editorCategory === "Alle" ? "is-active" : ""}
+                onClick={() => setEditorCategory("Alle")}
+              >
+                Alle
+              </button>
+              {categories.map((category) => (
+                <button
+                  className={editorCategory === category ? "is-active" : ""}
+                  key={category}
+                  onClick={() => setEditorCategory(category)}
+                >
+                  {categoryNames[category]}
+                </button>
+              ))}
+            </div>
             <div className="inventory-grid">
-              {allParts
-                .filter((part) => global.unlocked.includes(part.id))
-                .map((part) => (
+              {editorParts.map((part) => (
                   <button
                     className={`inventory-item ${
                       currentCreature.equipped[part.category] === part.id ? "is-equipped" : ""
                     }`}
                     key={part.id}
+                    title={`${part.name}: ${partSummary(part)}`}
                     onClick={() => equip(part)}
                   >
                     <PartIcon part={part} />
                     <span>{categoryNames[part.category]}</span>
+                    <small className="part-stat-strip">
+                      {stats.slice(0, 3).map((stat) => (
+                        <i key={stat}>{statShortNames[stat]} {part.stats[stat] >= 0 ? "+" : ""}{part.stats[stat]}</i>
+                      ))}
+                    </small>
+                    <span className="part-tooltip">
+                      <b>{part.name}</b>
+                      {stats.map((stat) => (
+                        <i key={stat}>{statShortNames[stat]} {part.stats[stat] >= 0 ? "+" : ""}{part.stats[stat]}</i>
+                      ))}
+                    </span>
                   </button>
                 ))}
+              {editorParts.length === 0 && <div className="builder-empty">Noch kein Körperteil in dieser Kategorie freigeschaltet.</div>}
             </div>
             <div className="editor-actions">
               <button className="primary-action" onClick={() => setScreen("lobby")}>
@@ -729,12 +785,15 @@ export default function Home() {
               )}
               {filteredParts.map((part) => (
                 <article className="shop-card" key={part.id}>
-                  <PartIcon part={part} />
+                  <div title={`${part.name}: ${partSummary(part)}`}>
+                    <PartIcon part={part} />
+                  </div>
                   <div>
                     <strong>{part.name}</strong>
                     <span>
                       {part.pack} · {part.category}
                     </span>
+                    <small className="shop-stats">{partSummary(part)}</small>
                   </div>
                   <div className="buy-row">
                     <button onClick={() => buy(part, "coins")}>{part.coinCost} C</button>
