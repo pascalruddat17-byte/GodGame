@@ -404,6 +404,7 @@ export default function Home() {
   const [categoryFilter, setCategoryFilter] = useState<Category | "Alle">("Alle");
   const [packFilter, setPackFilter] = useState<Pack | "Alle">("Alle");
   const [editorCategory, setEditorCategory] = useState<Category | "Alle">("Alle");
+  const [hoveredPartId, setHoveredPartId] = useState<string | null>(null);
   const [ad, setAd] = useState<null | { reward?: "coins" | "part"; backTo: Screen }>(null);
   const [adCountdown, setAdCountdown] = useState(3);
   const current = slots[activeSlot];
@@ -471,6 +472,7 @@ export default function Home() {
       global.unlocked.includes(part.id) &&
       (editorCategory === "Alle" || part.category === editorCategory),
   );
+  const hoveredPart = editorParts.find((part) => part.id === hoveredPartId) ?? editorParts[0];
 
   function chooseSlot(index: number) {
     setActiveSlot(index);
@@ -705,6 +707,22 @@ export default function Home() {
                 </button>
               ))}
             </div>
+            {hoveredPart && (
+              <div className="part-details" aria-live="polite">
+                <div>
+                  <span>DETAILS</span>
+                  <strong>{hoveredPart.name}</strong>
+                  <small>{hoveredPart.pack} · {categoryNames[hoveredPart.category]}</small>
+                </div>
+                <div className="part-details-stats">
+                  {stats.map((stat) => (
+                    <i key={stat}>
+                      <b>{statShortNames[stat]}</b> {hoveredPart.stats[stat] >= 0 ? "+" : ""}{hoveredPart.stats[stat]}
+                    </i>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="inventory-grid">
               {editorParts.map((part) => (
                   <button
@@ -713,6 +731,8 @@ export default function Home() {
                     }`}
                     key={part.id}
                     title={`${part.name}: ${partSummary(part)}`}
+                    onMouseEnter={() => setHoveredPartId(part.id)}
+                    onFocus={() => setHoveredPartId(part.id)}
                     onClick={() => equip(part)}
                   >
                     <PartIcon part={part} />
@@ -725,12 +745,6 @@ export default function Home() {
                         <i key={stat}>{statShortNames[stat]} {part.stats[stat] >= 0 ? "+" : ""}{part.stats[stat]}</i>
                       ))}
                     </small>
-                    <span className="part-tooltip">
-                      <b>{part.name}</b>
-                      {stats.map((stat) => (
-                        <i key={stat}>{statShortNames[stat]} {part.stats[stat] >= 0 ? "+" : ""}{part.stats[stat]}</i>
-                      ))}
-                    </span>
                   </button>
                 ))}
               {editorParts.length === 0 && <div className="builder-empty">Noch kein Körperteil in dieser Kategorie freigeschaltet.</div>}

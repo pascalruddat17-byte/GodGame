@@ -1235,12 +1235,72 @@ button:active {
   color: #fff6df;
 }
 
+.part-details {
+  align-items: center;
+  background: linear-gradient(105deg, #173f3b, #246c69);
+  border: 2px solid rgba(226, 164, 78, 0.72);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 rgba(41, 54, 38, 0.18);
+  color: #fff0d8;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-height: 54px;
+  padding: 8px 10px;
+}
+
+.part-details > div:first-child {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.part-details span {
+  color: #9fe2bd;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.part-details strong {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.part-details small {
+  color: #c2d8bd;
+  font-size: 9px;
+}
+
+.part-details-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 6px;
+  justify-content: flex-end;
+  max-width: 166px;
+}
+
+.part-details-stats i {
+  color: #ffe5a8;
+  font-size: 9px;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.part-details-stats b {
+  color: #fff0d8;
+}
+
 .inventory-grid {
   display: grid;
   gap: 7px;
   grid-template-columns: repeat(3, 1fr);
-  min-height: 156px;
+  flex: 1;
+  min-height: 250px;
   overflow: auto;
+  padding: 2px 2px 12px;
 }
 
 .inventory-item {
@@ -1252,7 +1312,7 @@ button:active {
   display: grid;
   gap: 4px;
   justify-items: center;
-  min-height: 92px;
+  min-height: 126px;
   position: relative;
   padding: 6px 4px;
   transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
@@ -1320,58 +1380,6 @@ button:active {
 
 .part-stat-strip i {
   font-style: normal;
-}
-
-.part-tooltip {
-  background: #173e3b;
-  border: 2px solid #e3a04b;
-  border-radius: 7px;
-  bottom: calc(100% + 7px);
-  box-shadow: 0 6px 16px rgba(10, 35, 31, 0.35);
-  color: #fff0d8 !important;
-  display: flex !important;
-  flex-wrap: wrap;
-  gap: 4px 7px;
-  left: 50%;
-  opacity: 0;
-  padding: 7px;
-  pointer-events: none;
-  position: absolute;
-  transform: translate(-50%, 4px);
-  transition: opacity 140ms ease, transform 140ms ease;
-  visibility: hidden;
-  width: 154px;
-  z-index: 20;
-}
-
-.part-tooltip::after {
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 6px solid #e3a04b;
-  bottom: -7px;
-  content: "";
-  left: calc(50% - 6px);
-  position: absolute;
-}
-
-.part-tooltip b {
-  flex-basis: 100%;
-  font-size: 10px;
-  line-height: 1.1;
-}
-
-.part-tooltip i {
-  color: #a9ebbe;
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 800;
-}
-
-.inventory-item:hover .part-tooltip,
-.inventory-item:focus-visible .part-tooltip {
-  opacity: 1;
-  transform: translate(-50%, 0);
-  visibility: visible;
 }
 
 .builder-empty {
