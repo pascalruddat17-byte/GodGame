@@ -885,6 +885,18 @@ export default function Home() {
               onPointerCancel={handleMapPointerUp}
               onWheel={handleMapWheel}
             >
+              <div className="world-atmosphere" aria-hidden="true">
+                {Array.from({ length: 24 }, (_, index) => (
+                  <i
+                    key={index}
+                    style={{
+                      left: `${(index * 37) % 96}%`,
+                      top: `${12 + ((index * 53) % 70)}%`,
+                      animationDelay: `${(index % 7) * 0.6}s`,
+                    }}
+                  />
+                ))}
+              </div>
               <div
                 className="map-pan-layer"
                 style={{
