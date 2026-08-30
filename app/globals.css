@@ -365,6 +365,20 @@
   overflow: hidden;
 }
 
+.earth-scene::before {
+  background:
+    linear-gradient(115deg, rgba(5, 28, 29, 0.56), transparent 28% 72%, rgba(5, 28, 29, 0.32)),
+    linear-gradient(rgba(218, 245, 203, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(218, 245, 203, 0.08) 1px, transparent 1px);
+  background-size: auto, 42px 42px, 42px 42px;
+  content: "";
+  inset: 0;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
 .reference-art {
   height: 100%;
   inset: 0;
@@ -610,6 +624,18 @@
   z-index: 4;
 }
 
+.creature-stage::before {
+  background: radial-gradient(ellipse, rgba(173, 255, 125, 0.34), transparent 64%);
+  border-radius: 50%;
+  content: "";
+  height: 260px;
+  left: 31px;
+  position: absolute;
+  top: 58px;
+  width: 260px;
+  z-index: -1;
+}
+
 .creature-stage p {
   background: linear-gradient(180deg, rgba(9, 77, 69, 0.9), rgba(5, 49, 44, 0.92));
   border: 2px solid #061613;
@@ -709,6 +735,7 @@
   border-radius: 50%;
   box-shadow: 0 0 26px rgba(88, 221, 168, 0.22), inset 0 0 20px rgba(255, 218, 121, 0.12);
   content: "";
+  animation: orbit-pulse 4.8s ease-in-out infinite;
   height: 170px;
   left: 20px;
   position: absolute;
@@ -947,6 +974,16 @@
   z-index: 6;
 }
 
+.hotbar::before {
+  background: rgba(3, 31, 29, 0.34);
+  border: 1px solid rgba(246, 239, 217, 0.2);
+  border-radius: 14px;
+  content: "";
+  inset: -7px -4px -5px;
+  position: absolute;
+  z-index: -1;
+}
+
 .hotbar button,
 .primary-action,
 .quiet-action,
@@ -974,6 +1011,12 @@
   min-height: 98px;
   text-shadow: 0 3px 0 #241d16;
   transition: filter 160ms ease, transform 160ms ease;
+}
+
+.hotbar button,
+.utility-bar span,
+.utility-bar button {
+  backdrop-filter: blur(6px);
 }
 
 .hotbar button:hover,
@@ -1008,6 +1051,19 @@ button:active {
   flex-direction: column;
   gap: 10px;
   padding: 58px 12px 12px;
+}
+
+.panel-screen::before,
+.world-screen::before {
+  background: linear-gradient(90deg, #e0a04c, #4dbb9a 45%, transparent 80%);
+  border-radius: 999px;
+  content: "";
+  height: 3px;
+  left: 12px;
+  position: absolute;
+  right: 12px;
+  top: 52px;
+  opacity: 0.78;
 }
 
 .top-back {
@@ -1114,6 +1170,7 @@ button:active {
   border-radius: inherit;
   display: block;
   height: 100%;
+  box-shadow: 0 0 8px rgba(77, 187, 154, 0.62);
 }
 
 .inventory-grid {
@@ -1481,6 +1538,19 @@ button:active {
 
   50% {
     margin-top: -5px;
+  }
+}
+
+@keyframes orbit-pulse {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(0.98) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.04) rotate(2deg);
   }
 }
 
