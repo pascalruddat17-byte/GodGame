@@ -5,9 +5,7 @@ import {
   BadgeDollarSign,
   Bird,
   ChevronLeft,
-  CircleDot,
   Footprints,
-  Gem,
   Hand,
   HeartPulse,
   Menu,
@@ -185,8 +183,8 @@ const initialSlots: SlotSave[] = [
 ];
 
 const initialGlobal: GlobalState = {
-  coins: 420,
-  gems: 9,
+  coins: 24680,
+  gems: 1540,
   unlocked: ["forest-bodies", "forest-heads", "stone-legs", "water-cores"],
 };
 
@@ -314,16 +312,16 @@ export default function Home() {
   const current = slots[activeSlot];
 
   useEffect(() => {
-    setSlots(loadState("earthcraft-slots", initialSlots));
-    setGlobal(loadState("earthcraft-global", initialGlobal));
+    setSlots(loadState("earthcraft-v2-slots", initialSlots));
+    setGlobal(loadState("earthcraft-v2-global", initialGlobal));
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("earthcraft-slots", JSON.stringify(slots));
+    window.localStorage.setItem("earthcraft-v2-slots", JSON.stringify(slots));
   }, [slots]);
 
   useEffect(() => {
-    window.localStorage.setItem("earthcraft-global", JSON.stringify(global));
+    window.localStorage.setItem("earthcraft-v2-global", JSON.stringify(global));
   }, [global]);
 
   useEffect(() => {
@@ -470,9 +468,18 @@ export default function Home() {
 
         {screen === "lobby" && (
           <section className="earth-scene">
-            <Landscape />
+            <img
+              className="reference-art"
+              src="/reference-lobby-art.png"
+              alt=""
+              aria-hidden="true"
+            />
             <div className="creature-stage">
-              <Creature equipped={current.equipped} onClick={() => setScreen("editor")} />
+              <button
+                className="lobby-creature-hit"
+                onClick={() => setScreen("editor")}
+                aria-label="Kreatur bearbeiten"
+              />
               <div className="equipped-ring">
                 {equippedParts.map((part) => (
                   <span key={part.id} title={part.name}>
@@ -664,10 +671,10 @@ function UtilityBar({
   return (
     <header className="utility-bar">
       <span>
-        <CircleDot size={16} /> {global.coins}
+        <img src="/reference-coin.png" alt="" /> {global.coins.toLocaleString("de-DE")}
       </span>
       <span>
-        <Gem size={16} /> {global.gems}
+        <img src="/reference-gem.png" alt="" /> {global.gems.toLocaleString("de-DE")}
       </span>
       <button onClick={onMenu} aria-label="Menu offnen">
         <Menu size={21} />

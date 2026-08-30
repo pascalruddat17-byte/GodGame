@@ -124,10 +124,10 @@
 
 .phone-frame {
   aspect-ratio: 9 / 16;
-  background: #e8dfc4;
-  border: 10px solid #1c201d;
-  border-radius: 28px;
-  box-shadow: 0 24px 60px rgba(18, 22, 17, 0.42);
+  background: #0a342f;
+  border: 8px solid #071411;
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(18, 22, 17, 0.46);
   color: #1f261f;
   max-height: min(94vh, 880px);
   max-width: min(96vw, 440px);
@@ -139,11 +139,11 @@
 .utility-bar {
   align-items: center;
   display: flex;
-  gap: 8px;
-  height: 50px;
-  justify-content: flex-end;
+  gap: 7px;
+  height: 70px;
+  justify-content: center;
   left: 0;
-  padding: 10px 13px;
+  padding: 10px 11px;
   position: absolute;
   right: 0;
   top: 0;
@@ -154,14 +154,29 @@
 .utility-bar button,
 .top-back button {
   align-items: center;
-  background: rgba(245, 240, 223, 0.78);
-  border: 1px solid rgba(51, 65, 48, 0.2);
-  border-radius: 999px;
-  color: #293125;
+  background: linear-gradient(180deg, rgba(10, 81, 73, 0.95), rgba(5, 49, 44, 0.96));
+  border: 3px solid #061613;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 2px rgba(79, 171, 151, 0.38),
+    0 3px 0 rgba(0, 0, 0, 0.28);
+  color: #fff0d8;
   display: inline-flex;
-  gap: 5px;
-  min-height: 34px;
-  padding: 7px 10px;
+  font-size: 24px;
+  font-weight: 900;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 13px;
+  text-shadow: 0 2px 0 #241d16;
+}
+
+.utility-bar span {
+  min-width: 128px;
+}
+
+.utility-bar img {
+  height: 38px;
+  width: 38px;
 }
 
 .utility-bar button,
@@ -169,7 +184,7 @@
 .close-menu {
   cursor: pointer;
   justify-content: center;
-  min-width: 34px;
+  min-width: 52px;
 }
 
 .slot-screen,
@@ -265,7 +280,28 @@
 }
 
 .earth-scene {
-  background: linear-gradient(180deg, #99c1bf 0%, #d7d19f 48%, #7b9a69 100%);
+  background: #527d4d;
+  overflow: hidden;
+}
+
+.reference-art {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center center;
+  position: absolute;
+  width: 100%;
+}
+
+.earth-scene::after {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.06), transparent 22%, transparent 69%, rgba(9, 43, 33, 0.34)),
+    radial-gradient(circle at 50% 52%, transparent 0 34%, rgba(3, 24, 19, 0.13) 66%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
 }
 
 .landscape {
@@ -430,18 +466,30 @@
   gap: 8px;
   left: 50%;
   position: absolute;
-  top: 43%;
+  top: 54%;
   transform: translate(-50%, -50%);
-  width: 260px;
-  z-index: 3;
+  width: 286px;
+  z-index: 4;
 }
 
 .creature-stage p {
-  background: rgba(246, 239, 217, 0.62);
-  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(9, 77, 69, 0.9), rgba(5, 49, 44, 0.92));
+  border: 2px solid #061613;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(128, 212, 185, 0.25);
+  color: #fff0d8;
   font-weight: 700;
   margin: 0;
   padding: 6px 12px;
+  text-shadow: 0 2px 0 #241d16;
+}
+
+.lobby-creature-hit {
+  background: rgba(255, 255, 255, 0.01);
+  border: 0;
+  cursor: pointer;
+  height: 360px;
+  width: 245px;
 }
 
 .creature {
@@ -632,15 +680,16 @@
   flex-wrap: wrap;
   gap: 6px;
   justify-content: center;
+  margin-top: -38px;
   min-height: 32px;
-  width: 210px;
+  width: 236px;
 }
 
 .part-icon {
   --part-color: #697b62;
   align-items: center;
   background: color-mix(in srgb, var(--part-color), #f4ecd1 42%);
-  border: 1px solid rgba(31, 38, 31, 0.22);
+  border: 2px solid rgba(6, 22, 19, 0.68);
   border-radius: 8px;
   box-shadow: inset -4px -5px 0 rgba(31, 38, 31, 0.1);
   display: inline-flex;
@@ -657,14 +706,14 @@
 
 .hotbar {
   align-items: end;
-  bottom: 14px;
+  bottom: 12px;
   display: grid;
-  gap: 8px;
-  grid-template-columns: 1fr 1.25fr 1fr;
-  left: 12px;
+  gap: 6px;
+  grid-template-columns: 1fr 1.35fr 1fr;
+  left: 10px;
   position: absolute;
-  right: 12px;
-  z-index: 5;
+  right: 10px;
+  z-index: 6;
 }
 
 .hotbar button,
@@ -674,7 +723,7 @@
 .buy-row button,
 .menu-sheet button {
   align-items: center;
-  border: 1px solid rgba(38, 48, 35, 0.22);
+  border: 3px solid #061613;
   border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
@@ -684,15 +733,22 @@
 }
 
 .hotbar button {
-  background: rgba(246, 239, 217, 0.85);
-  color: #293125;
-  min-height: 54px;
+  background: linear-gradient(180deg, rgba(10, 81, 73, 0.96), rgba(5, 49, 44, 0.96));
+  box-shadow:
+    inset 0 0 0 2px rgba(79, 171, 151, 0.36),
+    0 4px 0 rgba(0, 0, 0, 0.34);
+  color: #fff0d8;
+  flex-direction: column;
+  font-size: 22px;
+  min-height: 98px;
+  text-shadow: 0 3px 0 #241d16;
 }
 
 .hotbar .world-button {
-  background: #435f4a;
-  color: #fbf8eb;
-  min-height: 68px;
+  background: linear-gradient(180deg, #12665b, #073c35);
+  color: #fff0d8;
+  font-size: 33px;
+  min-height: 126px;
 }
 
 .panel-screen,
