@@ -1095,6 +1095,50 @@ button:active {
   position: relative;
 }
 
+.editor-stat-overlay {
+  left: 9px;
+  position: absolute;
+  top: 9px;
+  width: 166px;
+  z-index: 6;
+}
+
+.editor-stat-overlay > span {
+  background: #315c62;
+  border-radius: 4px 4px 0 0;
+  color: #fff0d8;
+  display: block;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 4px 7px;
+}
+
+.editor-stat-overlay .stat-list {
+  background: rgba(23, 63, 59, 0.88);
+  border: 1px solid rgba(226, 164, 78, 0.58);
+  border-radius: 0 0 6px 6px;
+  gap: 3px;
+  padding: 6px;
+}
+
+.editor-stat-overlay .stat-row {
+  color: #fff0d8;
+  gap: 4px;
+  grid-template-columns: 68px 1fr 20px;
+  min-height: 14px;
+}
+
+.editor-stat-overlay .stat-row span,
+.editor-stat-overlay .stat-row b {
+  font-size: 8px;
+}
+
+.editor-stat-overlay .stat-track {
+  background: rgba(246, 239, 217, 0.22);
+  height: 5px;
+}
+
 .editor-preview::before {
   border: 1px dashed rgba(52, 127, 145, 0.3);
   border-radius: 50%;

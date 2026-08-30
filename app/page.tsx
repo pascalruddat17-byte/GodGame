@@ -671,10 +671,10 @@ export default function Home() {
           <section className="panel-screen editor-screen">
             <TopBack label="Creature" onBack={() => setScreen("lobby")} />
             <div className="editor-preview">
-              <div className="slot-point point-head">Kopf</div>
-              <div className="slot-point point-wing">Flugel</div>
-              <div className="slot-point point-core">Kern</div>
-              <div className="slot-point point-tail">Schwanz</div>
+              <div className="editor-stat-overlay">
+                <span>CREATURE STATS</span>
+                <StatBars totals={totals} />
+              </div>
               <Creature equipped={currentCreature.equipped} />
             </div>
             <CreatureSlots
@@ -682,7 +682,6 @@ export default function Home() {
               activeCreature={activeCreature}
               onChoose={chooseCreature}
             />
-            <StatBars totals={totals} />
             <div className="builder-heading">
               <div>
                 <span>GENETIC LOADOUT</span>
