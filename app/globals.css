@@ -439,7 +439,7 @@
 }
 
 .earth-scene {
-  background: #527d4d url("/reference-lobby-empty.jpg") center center / cover no-repeat;
+  background: #527d4d url("../public/reference-lobby-empty.jpg") center center / cover no-repeat;
   overflow: hidden;
 }
 

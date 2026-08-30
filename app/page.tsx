@@ -154,6 +154,13 @@ const statShortNames: Record<Stat, string> = {
   Geschwindigkeit: "SPD",
 };
 
+function assetPath(path: string) {
+  const base = import.meta.env.BASE_URL || "/";
+  const cleanBase = base.endsWith("/") ? base : `${base}/`;
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  return `${cleanBase}${cleanPath}`;
+}
+
 const tentPosition = { x: 900, y: 600 };
 const worldStartPositions: Record<WorldCreatureKey, { x: number; y: number }> = {
   female: { x: 870, y: 600 },
@@ -262,7 +269,7 @@ const allParts: Part[] = packs.flatMap((pack, packIndex) =>
       ) as Record<Stat, number>,
       symbol: categorySymbols[category],
       color: packStyles[pack].color,
-      image: `/parts/${pack.toLowerCase()}-${category.toLowerCase()}.png`,
+      image: assetPath(`parts/${pack.toLowerCase()}-${category.toLowerCase()}.png`),
     };
   }),
 );
@@ -1068,7 +1075,7 @@ export default function Home() {
 
   return (
     <main className="game-shell">
-      <link rel="preload" as="image" href="/reference-lobby-empty.jpg" />
+      <link rel="preload" as="image" href={assetPath("reference-lobby-empty.jpg")} />
       <section className={`phone-frame ${deviceMode === "pc" ? "pc-mode" : ""}`} aria-label="2D Mobile God Game Prototype">
         {screen !== "slots" && screen !== "world" && <UtilityBar global={global} onMenu={() => setMenuOpen(true)} />}
 
@@ -1102,7 +1109,7 @@ export default function Home() {
           <section className="earth-scene">
             <img
               className="reference-art"
-              src="/reference-lobby-empty.jpg"
+              src={assetPath("reference-lobby-empty.jpg")}
               alt=""
               aria-hidden="true"
               decoding="async"
