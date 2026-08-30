@@ -280,22 +280,13 @@
 }
 
 .earth-scene {
-  background: #527d4d;
+  background: linear-gradient(180deg, #36a9df 0%, #8eced3 38%, #7fa85f 74%, #5f8548 100%);
   overflow: hidden;
-}
-
-.reference-art {
-  height: 100%;
-  inset: 0;
-  object-fit: cover;
-  object-position: center center;
-  position: absolute;
-  width: 100%;
 }
 
 .earth-scene::after {
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.06), transparent 22%, transparent 69%, rgba(9, 43, 33, 0.34)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.03), transparent 22%, transparent 69%, rgba(9, 43, 33, 0.25)),
     radial-gradient(circle at 50% 52%, transparent 0 34%, rgba(3, 24, 19, 0.13) 66%);
   content: "";
   inset: 0;
@@ -316,14 +307,14 @@
   box-shadow: 0 0 44px rgba(246, 210, 121, 0.7);
   height: 70px;
   position: absolute;
-  right: 44px;
-  top: 82px;
+  right: 52px;
+  top: 96px;
   width: 70px;
 }
 
 .hill {
   border-radius: 50% 50% 0 0;
-  bottom: 95px;
+  bottom: 150px;
   position: absolute;
 }
 
@@ -344,7 +335,7 @@
 .water {
   background: rgba(72, 141, 151, 0.76);
   border-radius: 50%;
-  bottom: 115px;
+  bottom: 198px;
   height: 112px;
   left: 40px;
   position: absolute;
@@ -355,7 +346,7 @@
 .plant {
   background: #4d7b56;
   border-radius: 60% 60% 12% 12%;
-  bottom: 140px;
+  bottom: 174px;
   position: absolute;
   transform-origin: bottom;
   width: 20px;
@@ -397,7 +388,7 @@
 
 .plant-three {
   background: #347f91;
-  bottom: 192px;
+  bottom: 236px;
   height: 45px;
   right: 110px;
   transform: rotate(-17deg);
@@ -413,28 +404,28 @@
 }
 
 .tree-one {
-  bottom: 202px;
+  bottom: 256px;
   height: 58px;
   left: 32px;
   width: 58px;
 }
 
 .tree-two {
-  bottom: 185px;
+  bottom: 240px;
   height: 74px;
   right: 26px;
   width: 74px;
 }
 
 .stone-one {
-  bottom: 125px;
+  bottom: 186px;
   height: 72px;
   right: 72px;
   width: 72px;
 }
 
 .wave-mark {
-  bottom: 155px;
+  bottom: 224px;
   height: 54px;
   left: 128px;
   opacity: 0.36;
@@ -463,12 +454,13 @@
   align-items: center;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   left: 50%;
   position: absolute;
-  top: 54%;
+  top: 56%;
   transform: translate(-50%, -50%);
-  width: 286px;
+  height: 392px;
+  width: 322px;
   z-index: 4;
 }
 
@@ -479,17 +471,31 @@
   box-shadow: inset 0 0 0 1px rgba(128, 212, 185, 0.25);
   color: #fff0d8;
   font-weight: 700;
+  bottom: 0;
   margin: 0;
   padding: 6px 12px;
+  position: absolute;
   text-shadow: 0 2px 0 #241d16;
+  z-index: 5;
 }
 
-.lobby-creature-hit {
-  background: rgba(255, 255, 255, 0.01);
-  border: 0;
-  cursor: pointer;
-  height: 360px;
-  width: 245px;
+.pedestal-art {
+  bottom: 8px;
+  filter: drop-shadow(0 11px 14px rgba(0, 0, 0, 0.26));
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: 326px;
+  z-index: 1;
+}
+
+.creature-stage > .creature {
+  bottom: 128px;
+  filter: drop-shadow(0 10px 10px rgba(5, 24, 19, 0.28));
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%) scale(1.07);
+  z-index: 3;
 }
 
 .creature {

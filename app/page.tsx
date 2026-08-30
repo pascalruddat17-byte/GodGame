@@ -345,10 +345,6 @@ export default function Home() {
     return next;
   }, [current.equipped]);
 
-  const equippedParts = categories
-    .map((category) => getPart(current.equipped[category]))
-    .filter(Boolean) as Part[];
-
   const filteredParts = allParts.filter((part) => {
     const byCategory = categoryFilter === "Alle" || part.category === categoryFilter;
     const byPack = packFilter === "Alle" || part.pack === packFilter;
@@ -468,25 +464,15 @@ export default function Home() {
 
         {screen === "lobby" && (
           <section className="earth-scene">
-            <img
-              className="reference-art"
-              src="/reference-lobby-art.png"
-              alt=""
-              aria-hidden="true"
-            />
+            <Landscape />
             <div className="creature-stage">
-              <button
-                className="lobby-creature-hit"
-                onClick={() => setScreen("editor")}
-                aria-label="Kreatur bearbeiten"
+              <img
+                className="pedestal-art"
+                src="/reference-pedestal.png"
+                alt=""
+                aria-hidden="true"
               />
-              <div className="equipped-ring">
-                {equippedParts.map((part) => (
-                  <span key={part.id} title={part.name}>
-                    <PartIcon part={part} />
-                  </span>
-                ))}
-              </div>
+              <Creature equipped={current.equipped} onClick={() => setScreen("editor")} />
               <p>{current.creatureName}</p>
             </div>
             <Hotbar setScreen={setScreen} />
