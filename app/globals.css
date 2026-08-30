@@ -114,8 +114,9 @@
 .game-shell {
   align-items: center;
   background:
-    radial-gradient(circle at 30% 12%, rgba(255, 246, 188, 0.65), transparent 26%),
-    linear-gradient(145deg, #a9b998 0%, #d8d1bd 42%, #7da0a0 100%);
+    radial-gradient(circle at 50% 6%, rgba(255, 196, 101, 0.28), transparent 23%),
+    radial-gradient(circle at 8% 86%, rgba(37, 128, 135, 0.42), transparent 30%),
+    linear-gradient(145deg, #122b2b 0%, #245451 48%, #d19a58 150%);
   display: flex;
   height: 100vh;
   justify-content: center;
@@ -127,7 +128,9 @@
   background: #0a342f;
   border: 8px solid #071411;
   border-radius: 24px;
-  box-shadow: 0 24px 60px rgba(18, 22, 17, 0.46);
+  box-shadow:
+    0 28px 70px rgba(3, 14, 17, 0.62),
+    0 0 0 1px rgba(255, 222, 151, 0.16);
   color: #1f261f;
   max-height: min(94vh, 880px);
   max-width: min(96vw, 440px);
@@ -148,6 +151,16 @@
   right: 0;
   top: 0;
   z-index: 8;
+}
+
+.utility-bar::before {
+  background: rgba(2, 28, 27, 0.48);
+  border: 1px solid rgba(232, 205, 132, 0.18);
+  border-radius: 12px;
+  content: "";
+  inset: 7px 9px;
+  position: absolute;
+  z-index: -1;
 }
 
 .utility-bar span,
@@ -254,6 +267,16 @@
   padding: 28px 18px;
 }
 
+.slot-screen::after {
+  background:
+    linear-gradient(120deg, transparent 0 62%, rgba(255, 236, 164, 0.22) 63%, transparent 64%),
+    linear-gradient(180deg, transparent 0 52%, rgba(22, 59, 50, 0.5));
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
 .slot-sky {
   background:
     radial-gradient(ellipse at 72% 28%, rgba(255, 225, 141, 0.95) 0 7%, transparent 8%),
@@ -306,6 +329,15 @@
   min-height: 92px;
   padding: 13px;
   text-align: left;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.save-slot:hover,
+.save-slot:focus-visible {
+  border-color: #d8893f;
+  box-shadow: 0 7px 0 rgba(44, 70, 48, 0.22), 0 0 0 3px rgba(216, 137, 63, 0.18);
+  outline: none;
+  transform: translateY(-2px);
 }
 
 .save-slot strong {
@@ -539,7 +571,8 @@
 
 .creature-stage > .creature {
   bottom: 66px;
-  filter: drop-shadow(0 10px 10px rgba(5, 24, 19, 0.28));
+  animation: creature-hover 3.8s ease-in-out infinite;
+  filter: drop-shadow(0 13px 9px rgba(5, 24, 19, 0.36));
   left: 50%;
   position: absolute;
   transform: translateX(-50%) scale(1.24);
@@ -573,6 +606,14 @@
   min-height: 42px;
   min-width: 82px;
   padding: 5px 8px;
+  transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+
+.creature-slots button:hover,
+.creature-slots button:focus-visible {
+  border-color: #ffe5a8;
+  outline: none;
+  transform: translateY(-2px);
 }
 
 .creature-slots button.is-active {
@@ -852,6 +893,21 @@
   font-size: 22px;
   min-height: 98px;
   text-shadow: 0 3px 0 #241d16;
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.hotbar button:hover,
+.hotbar button:focus-visible,
+.primary-action:hover,
+.reward-strip button:hover,
+.buy-row button:hover {
+  filter: brightness(1.13) saturate(1.08);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(1px) scale(0.98);
 }
 
 .hotbar .world-button {
@@ -865,7 +921,9 @@
 .world-screen {
   background:
     linear-gradient(180deg, rgba(128, 164, 144, 0.3), transparent 36%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24) 25%, transparent 25% 50%, rgba(52, 127, 145, 0.05) 50% 75%, transparent 75%),
     #eee3c8;
+  background-size: auto, 18px 18px, auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -892,13 +950,22 @@
   align-items: center;
   background:
     radial-gradient(circle at center, rgba(114, 151, 119, 0.24), transparent 64%),
-    rgba(238, 229, 202, 0.7);
+    rgba(238, 229, 202, 0.78);
   border: 1px solid rgba(38, 48, 35, 0.16);
   border-radius: 8px;
   display: flex;
   height: 250px;
   justify-content: center;
   position: relative;
+}
+
+.editor-preview::before {
+  border: 1px dashed rgba(52, 127, 145, 0.3);
+  border-radius: 50%;
+  content: "";
+  height: 210px;
+  position: absolute;
+  width: 210px;
 }
 
 .slot-point {
@@ -988,6 +1055,14 @@
   justify-items: center;
   min-height: 92px;
   padding: 6px 4px;
+  transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.inventory-item:hover,
+.inventory-item:focus-visible {
+  box-shadow: 0 4px 0 rgba(47, 74, 60, 0.16);
+  outline: none;
+  transform: translateY(-2px);
 }
 
 .inventory-item span:last-child {
@@ -1316,6 +1391,17 @@
 .ad-screen button:disabled {
   color: #666;
   cursor: wait;
+}
+
+@keyframes creature-hover {
+  0%,
+  100% {
+    margin-top: 0;
+  }
+
+  50% {
+    margin-top: -5px;
+  }
 }
 
 @media (max-height: 680px) {
