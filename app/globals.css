@@ -1548,44 +1548,23 @@ button:active {
   position: absolute;
   width: 1800px;
   will-change: transform;
+  z-index: 5;
 }
 
 .world-ground {
   background:
-    radial-gradient(ellipse at 26% 24%, rgba(129, 176, 105, 0.72), transparent 20%),
-    radial-gradient(ellipse at 75% 73%, rgba(44, 112, 76, 0.42), transparent 24%),
-    repeating-linear-gradient(16deg, rgba(28, 88, 58, 0.12) 0 2px, transparent 2px 18px),
-    #6d9b5a;
+    linear-gradient(180deg, rgba(13, 51, 56, 0.04), rgba(11, 54, 38, 0.16)),
+    url("/reference-lobby-empty.jpg") center / 1800px 1200px no-repeat;
   inset: 0;
   position: absolute;
 }
 
 .world-river {
-  background:
-    repeating-linear-gradient(174deg, rgba(238, 255, 210, 0.35) 0 3px, transparent 3px 18px),
-    linear-gradient(90deg, #217b91, #5ac6c5 48%, #217b91);
-  border: 14px solid rgba(196, 228, 174, 0.35);
-  border-radius: 50%;
-  height: 520px;
-  left: 580px;
-  opacity: 0.92;
-  position: absolute;
-  top: 320px;
-  transform: rotate(-20deg);
-  width: 230px;
+  display: none;
 }
 
 .world-path {
-  background: #c7a773;
-  border: 8px solid rgba(111, 137, 79, 0.28);
-  border-radius: 50%;
-  height: 1040px;
-  left: 760px;
-  opacity: 0.72;
-  position: absolute;
-  top: 100px;
-  transform: rotate(19deg);
-  width: 190px;
+  display: none;
 }
 
 .world-node {
@@ -1736,6 +1715,49 @@ button:active {
 
 .world-label-one { left: 500px; top: 240px; }
 .world-label-two { left: 1060px; top: 740px; transform: rotate(7deg); }
+
+.world-screen {
+  background: #477c60 url("/reference-lobby-empty.jpg") center / cover no-repeat;
+  gap: 0;
+  padding: 0;
+}
+
+.world-screen .map {
+  background: rgba(34, 82, 62, 0.12);
+  border: 0;
+  border-radius: 0;
+  height: 100%;
+  margin: 0;
+}
+
+.world-screen .map::after {
+  background: linear-gradient(180deg, rgba(8, 35, 33, 0.24), transparent 24% 68%, rgba(5, 34, 25, 0.38));
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 4;
+}
+
+.world-screen .world-caption {
+  bottom: 76px;
+  left: 18px;
+  max-width: 260px;
+  position: absolute;
+  z-index: 6;
+}
+
+.world-screen .world-controls {
+  bottom: 20px;
+  left: 18px;
+  position: absolute;
+  right: 18px;
+  z-index: 7;
+}
+
+.world-screen .top-back {
+  top: 12px;
+}
 
 .map-tile {
   border-radius: 999px;
