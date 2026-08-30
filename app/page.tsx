@@ -464,14 +464,13 @@ export default function Home() {
 
         {screen === "lobby" && (
           <section className="earth-scene">
-            <Landscape />
+            <img
+              className="reference-art"
+              src="/reference-lobby-empty.png"
+              alt=""
+              aria-hidden="true"
+            />
             <div className="creature-stage">
-              <img
-                className="pedestal-art"
-                src="/reference-pedestal.png"
-                alt=""
-                aria-hidden="true"
-              />
               <Creature equipped={current.equipped} onClick={() => setScreen("editor")} />
               <p>{current.creatureName}</p>
             </div>

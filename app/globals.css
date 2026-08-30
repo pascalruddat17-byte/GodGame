@@ -329,8 +329,17 @@
 }
 
 .earth-scene {
-  background: linear-gradient(180deg, #36a9df 0%, #8eced3 38%, #7fa85f 74%, #5f8548 100%);
+  background: #527d4d;
   overflow: hidden;
+}
+
+.reference-art {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center center;
+  position: absolute;
+  width: 100%;
 }
 
 .earth-scene::after {
@@ -508,7 +517,7 @@
   position: absolute;
   top: 56%;
   transform: translate(-50%, -50%);
-  height: 392px;
+  height: 360px;
   width: 322px;
   z-index: 4;
 }
@@ -520,7 +529,7 @@
   box-shadow: inset 0 0 0 1px rgba(128, 212, 185, 0.25);
   color: #fff0d8;
   font-weight: 700;
-  bottom: 0;
+  bottom: 12px;
   margin: 0;
   padding: 6px 12px;
   position: absolute;
@@ -528,22 +537,12 @@
   z-index: 5;
 }
 
-.pedestal-art {
-  bottom: 8px;
-  filter: drop-shadow(0 11px 14px rgba(0, 0, 0, 0.26));
-  left: 50%;
-  position: absolute;
-  transform: translateX(-50%);
-  width: 326px;
-  z-index: 1;
-}
-
 .creature-stage > .creature {
-  bottom: 128px;
+  bottom: 66px;
   filter: drop-shadow(0 10px 10px rgba(5, 24, 19, 0.28));
   left: 50%;
   position: absolute;
-  transform: translateX(-50%) scale(1.07);
+  transform: translateX(-50%) scale(1.24);
   z-index: 3;
 }
 
