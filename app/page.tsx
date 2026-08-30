@@ -581,6 +581,15 @@ export default function Home() {
               decoding="async"
               fetchPriority="high"
             />
+            <div className="lobby-title">
+              <span>EARTHFORM // 01</span>
+              <strong>PRIMAL CORE ONLINE</strong>
+              <i />
+            </div>
+            <div className="lobby-status">
+              <span>WELT {String(activeSlot + 1).padStart(2, "0")}</span>
+              <b>{current.progress}% EVOLUTION</b>
+            </div>
             <div className="creature-stage">
               <CreatureSlots
                 creatures={current.creatures}
