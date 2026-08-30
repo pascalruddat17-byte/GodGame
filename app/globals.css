@@ -1653,6 +1653,19 @@ button:active {
   transform: scale(calc(var(--node-scale) * 1.08));
 }
 
+.world-action-sammelt .world-node.rock,
+.world-action-sammelt .world-node.flower {
+  animation: resource-ping 1.7s ease-in-out infinite;
+}
+
+.world-action-baut .world-node.shrine {
+  animation: shrine-pulse 1.4s ease-in-out infinite;
+}
+
+.world-action-erkundet .world-node {
+  animation: discovery-glint 2.2s ease-in-out infinite;
+}
+
 .world-node.tree,
 .world-node.pine,
 .world-node.bush {
@@ -2336,6 +2349,21 @@ button:active {
     opacity: 0.9;
     transform: translate(7px, -11px) scale(1.25);
   }
+}
+
+@keyframes resource-ping {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 227, 125, 0)); }
+  50% { filter: drop-shadow(0 0 10px rgba(255, 227, 125, 0.82)); }
+}
+
+@keyframes shrine-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.28) drop-shadow(0 0 12px rgba(84, 226, 177, 0.78)); }
+}
+
+@keyframes discovery-glint {
+  0%, 100% { filter: saturate(1); }
+  50% { filter: saturate(1.25) brightness(1.1); }
 }
 
 @media (max-height: 680px) {

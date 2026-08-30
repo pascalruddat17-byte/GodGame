@@ -898,7 +898,7 @@ export default function Home() {
                 ))}
               </div>
               <div
-                className="map-pan-layer"
+                className={`map-pan-layer world-action-${worldAction.toLowerCase()}`}
                 style={{
                   transform: `translate(calc(-50% + ${mapOffset.x}px), calc(-50% + ${mapOffset.y}px)) scale(${mapZoom})`,
                 }}
