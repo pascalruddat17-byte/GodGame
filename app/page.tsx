@@ -348,7 +348,8 @@ export default function Home() {
   const filteredParts = allParts.filter((part) => {
     const byCategory = categoryFilter === "Alle" || part.category === categoryFilter;
     const byPack = packFilter === "Alle" || part.pack === packFilter;
-    return byCategory && byPack;
+    const isAvailableToBuy = !global.unlocked.includes(part.id);
+    return byCategory && byPack && isAvailableToBuy;
   });
 
   function chooseSlot(index: number) {
@@ -550,26 +551,27 @@ export default function Home() {
               </select>
             </div>
             <div className="shop-grid">
-              {filteredParts.map((part) => {
-                const unlocked = global.unlocked.includes(part.id);
-                return (
-                  <article className="shop-card" key={part.id}>
-                    <PartIcon part={part} />
-                    <div>
-                      <strong>{part.name}</strong>
-                      <span>
-                        {part.pack} · {part.category}
-                      </span>
-                    </div>
-                    <div className="buy-row">
-                      <button onClick={() => buy(part, "coins")}>
-                        {unlocked ? "Ausrusten" : `${part.coinCost} C`}
-                      </button>
-                      {!unlocked && <button onClick={() => buy(part, "gems")}>{part.gemCost} D</button>}
-                    </div>
-                  </article>
-                );
-              })}
+              {filteredParts.length === 0 && (
+                <div className="shop-empty">
+                  <strong>Alles aus diesem Filter ist schon im Inventar.</strong>
+                  <span>Gekaufte Teile findest du im Creature-Editor.</span>
+                </div>
+              )}
+              {filteredParts.map((part) => (
+                <article className="shop-card" key={part.id}>
+                  <PartIcon part={part} />
+                  <div>
+                    <strong>{part.name}</strong>
+                    <span>
+                      {part.pack} · {part.category}
+                    </span>
+                  </div>
+                  <div className="buy-row">
+                    <button onClick={() => buy(part, "coins")}>{part.coinCost} C</button>
+                    <button onClick={() => buy(part, "gems")}>{part.gemCost} D</button>
+                  </div>
+                </article>
+              ))}
             </div>
           </section>
         )}

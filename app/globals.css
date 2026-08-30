@@ -1012,6 +1012,29 @@
   padding: 10px;
 }
 
+.shop-empty {
+  align-content: center;
+  background: rgba(246, 239, 217, 0.78);
+  border: 2px dashed rgba(38, 48, 35, 0.24);
+  border-radius: 8px;
+  color: #293125;
+  display: grid;
+  gap: 5px;
+  grid-column: 1 / -1;
+  min-height: 110px;
+  padding: 14px;
+  text-align: center;
+}
+
+.shop-empty strong {
+  font-size: 14px;
+}
+
+.shop-empty span {
+  color: #656451;
+  font-size: 12px;
+}
+
 .shop-card strong,
 .shop-card span {
   display: block;
