@@ -1785,11 +1785,26 @@ button:active {
 }
 
 .world-screen .map {
-  background: rgba(34, 82, 62, 0.12);
+  background:
+    linear-gradient(rgba(55, 122, 70, 0.22), rgba(36, 102, 57, 0.18)),
+    url("/reference-lobby-empty.jpg") center / 620px 1103px repeat;
   border: 0;
   border-radius: 0;
   height: 100%;
   margin: 0;
+}
+
+.world-screen .world-ground {
+  display: none;
+}
+
+.world-screen .top-back strong {
+  display: none;
+}
+
+.world-screen .top-back button {
+  background: rgba(7, 44, 39, 0.82);
+  border-color: rgba(246, 239, 217, 0.42);
 }
 
 .world-screen .map::after {

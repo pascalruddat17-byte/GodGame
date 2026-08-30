@@ -399,7 +399,10 @@ export default function Home() {
   const [activeCreature, setActiveCreature] = useState(0);
   const [deviceMode, setDeviceMode] = useState<"mobile" | "pc">("mobile");
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
+  const [mapZoom, setMapZoom] = useState(1);
   const dragOrigin = useRef<{ pointerX: number; pointerY: number; x: number; y: number } | null>(null);
+  const activePointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinchOrigin = useRef<{ distance: number; zoom: number } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category | "Alle">("Alle");
   const [packFilter, setPackFilter] = useState<Pack | "Alle">("Alle");
@@ -582,7 +585,17 @@ export default function Home() {
   }
 
   function handleMapPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     event.currentTarget.setPointerCapture(event.pointerId);
+    if (activePointers.current.size === 2) {
+      const points = [...activePointers.current.values()];
+      pinchOrigin.current = {
+        distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y),
+        zoom: mapZoom,
+      };
+      dragOrigin.current = null;
+      return;
+    }
     dragOrigin.current = {
       pointerX: event.clientX,
       pointerY: event.clientY,
@@ -592,6 +605,15 @@ export default function Home() {
   }
 
   function handleMapPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (activePointers.current.has(event.pointerId)) {
+      activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+    if (pinchOrigin.current && activePointers.current.size >= 2) {
+      const points = [...activePointers.current.values()];
+      const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      setMapZoom(Math.min(1.8, Math.max(0.55, pinchOrigin.current.zoom * (distance / pinchOrigin.current.distance))));
+      return;
+    }
     if (!dragOrigin.current) return;
     setMapOffset({
       x: dragOrigin.current.x + event.clientX - dragOrigin.current.pointerX,
@@ -599,8 +621,20 @@ export default function Home() {
     });
   }
 
-  function handleMapPointerUp() {
-    dragOrigin.current = null;
+  function handleMapPointerUp(event?: React.PointerEvent<HTMLDivElement>) {
+    if (event) activePointers.current.delete(event.pointerId);
+    if (activePointers.current.size < 2) pinchOrigin.current = null;
+    if (activePointers.current.size === 0) dragOrigin.current = null;
+  }
+
+  function handleMapWheel(event: React.WheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setMapZoom((zoom) => Math.min(1.8, Math.max(0.55, zoom - event.deltaY * 0.0015)));
+  }
+
+  function resetMapView() {
+    setMapOffset({ x: 0, y: 0 });
+    setMapZoom(1);
   }
 
   return (
@@ -830,11 +864,12 @@ export default function Home() {
               onPointerMove={handleMapPointerMove}
               onPointerUp={handleMapPointerUp}
               onPointerCancel={handleMapPointerUp}
+              onWheel={handleMapWheel}
             >
               <div
                 className="map-pan-layer"
                 style={{
-                  transform: `translate(calc(-50% + ${mapOffset.x}px), calc(-50% + ${mapOffset.y}px))`,
+                  transform: `translate(calc(-50% + ${mapOffset.x}px), calc(-50% + ${mapOffset.y}px)) scale(${mapZoom})`,
                 }}
               >
                 <div className="world-ground" />
@@ -857,20 +892,10 @@ export default function Home() {
                     </span>
                   );
                 })}
-                <div className="world-label world-label-one">MOONWATER CREEK</div>
-                <div className="world-label world-label-two">ANCIENT GROVE</div>
                 <Creature equipped={currentCreature.equipped} compact />
                 <span className="map-creature one" />
                 <span className="map-creature two" />
               </div>
-            </div>
-            <div className="world-controls">
-              <span>{deviceMode === "pc" ? "WASD · SHIFT = schneller" : "Ziehen zum Erkunden"}</span>
-              <button onClick={() => setMapOffset({ x: 0, y: 0 })}>Zentrum</button>
-            </div>
-            <div className="world-caption">
-              <h2>Erste 2D-Welt-Vorschau</h2>
-              <p>Gras, Wasser, Baume, Steine und Platzhalter fur Kreaturen.</p>
             </div>
           </section>
         )}
