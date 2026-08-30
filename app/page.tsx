@@ -269,10 +269,12 @@ function Creature({
   equipped,
   compact = false,
   onClick,
+  style,
 }: {
   equipped: Partial<Record<Category, string>>;
   compact?: boolean;
   onClick?: () => void;
+  style?: React.CSSProperties;
 }) {
   const parts = Object.fromEntries(
     categories.map((category) => [category, getPart(equipped[category])]),
@@ -283,7 +285,7 @@ function Creature({
   const sizeClass = compact ? "creature creature--compact" : "creature";
 
   return (
-    <button className={sizeClass} onClick={onClick} aria-label="Kreatur bearbeiten">
+    <button className={sizeClass} onClick={onClick} style={style} aria-label="Kreatur bearbeiten">
       {parts.Wings && (
         <>
           <span className="part wing wing-left" style={{ background: wingColor }} />
@@ -401,6 +403,7 @@ export default function Home() {
   const [deviceMode, setDeviceMode] = useState<"mobile" | "pc">("mobile");
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const [mapZoom, setMapZoom] = useState(1);
+  const [worldCreaturePosition, setWorldCreaturePosition] = useState({ x: 900, y: 600 });
   const [worldAction, setWorldAction] = useState<WorldAction>("Bereit");
   const dragOrigin = useRef<{ pointerX: number; pointerY: number; x: number; y: number } | null>(null);
   const activePointers = useRef(new Map<number, { x: number; y: number }>());
@@ -624,6 +627,20 @@ export default function Home() {
   }
 
   function handleMapPointerUp(event?: React.PointerEvent<HTMLDivElement>) {
+    if (
+      event &&
+      activePointers.current.size === 1 &&
+      dragOrigin.current &&
+      event.target === event.currentTarget &&
+      Math.hypot(event.clientX - dragOrigin.current.pointerX, event.clientY - dragOrigin.current.pointerY) < 6
+    ) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setWorldCreaturePosition({
+        x: Math.min(1650, Math.max(150, (event.clientX - rect.left - rect.width / 2 - mapOffset.x) / mapZoom + 900)),
+        y: Math.min(1050, Math.max(120, (event.clientY - rect.top - rect.height / 2 - mapOffset.y) / mapZoom + 600)),
+      });
+      setWorldAction("Erkundet");
+    }
     if (event) activePointers.current.delete(event.pointerId);
     if (activePointers.current.size < 2) pinchOrigin.current = null;
     if (activePointers.current.size === 0) dragOrigin.current = null;
@@ -944,6 +961,7 @@ export default function Home() {
                   equipped={currentCreature.equipped}
                   compact
                   onClick={() => setScreen("editor")}
+                  style={{ left: worldCreaturePosition.x, top: worldCreaturePosition.y }}
                 />
                 <span className="map-creature one" />
                 <span className="map-creature two" />
