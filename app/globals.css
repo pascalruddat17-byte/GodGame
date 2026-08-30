@@ -1534,12 +1534,200 @@ button:active {
 }
 
 .map-pan-layer {
-  height: 100%;
-  inset: 0;
+  height: 1200px;
+  left: 50%;
+  top: 50%;
   position: absolute;
-  width: 100%;
+  width: 1800px;
   will-change: transform;
 }
+
+.world-ground {
+  background:
+    radial-gradient(ellipse at 26% 24%, rgba(129, 176, 105, 0.72), transparent 20%),
+    radial-gradient(ellipse at 75% 73%, rgba(44, 112, 76, 0.42), transparent 24%),
+    repeating-linear-gradient(16deg, rgba(28, 88, 58, 0.12) 0 2px, transparent 2px 18px),
+    #6d9b5a;
+  inset: 0;
+  position: absolute;
+}
+
+.world-river {
+  background:
+    repeating-linear-gradient(174deg, rgba(238, 255, 210, 0.35) 0 3px, transparent 3px 18px),
+    linear-gradient(90deg, #217b91, #5ac6c5 48%, #217b91);
+  border: 14px solid rgba(196, 228, 174, 0.35);
+  border-radius: 50%;
+  height: 520px;
+  left: 580px;
+  opacity: 0.92;
+  position: absolute;
+  top: 320px;
+  transform: rotate(-20deg);
+  width: 230px;
+}
+
+.world-path {
+  background: #c7a773;
+  border: 8px solid rgba(111, 137, 79, 0.28);
+  border-radius: 50%;
+  height: 1040px;
+  left: 760px;
+  opacity: 0.72;
+  position: absolute;
+  top: 100px;
+  transform: rotate(19deg);
+  width: 190px;
+}
+
+.world-node {
+  display: block;
+  position: absolute;
+  transform: scale(var(--node-scale));
+  transform-origin: bottom center;
+  z-index: 2;
+}
+
+.world-node.tree,
+.world-node.pine {
+  height: 116px;
+  width: 84px;
+}
+
+.world-node.tree i {
+  background: #694d32;
+  border-radius: 50% 50% 18% 18%;
+  bottom: 0;
+  height: 66px;
+  left: 35px;
+  position: absolute;
+  width: 18px;
+}
+
+.world-node.tree b,
+.world-node.tree em,
+.world-node.tree::after {
+  background: #286447;
+  border: 3px solid #1c4836;
+  border-radius: 50%;
+  content: "";
+  height: 60px;
+  position: absolute;
+  width: 60px;
+}
+
+.world-node.tree b { left: 0; top: 20px; }
+.world-node.tree em { right: 0; top: 8px; }
+.world-node.tree::after { left: 18px; top: 0; background: #3c8050; }
+
+.world-node.pine i {
+  background: #634a32;
+  bottom: 0;
+  height: 62px;
+  left: 38px;
+  position: absolute;
+  width: 10px;
+}
+
+.world-node.pine b,
+.world-node.pine em,
+.world-node.pine::after {
+  border-bottom: 52px solid #245d45;
+  border-left: 31px solid transparent;
+  border-right: 31px solid transparent;
+  content: "";
+  left: 11px;
+  position: absolute;
+  width: 0;
+}
+
+.world-node.pine b { top: 16px; }
+.world-node.pine em { top: 34px; border-bottom-color: #2f704b; }
+.world-node.pine::after { top: 0; border-bottom-color: #438759; }
+
+.world-node.bush {
+  height: 48px;
+  width: 78px;
+}
+
+.world-node.bush i,
+.world-node.bush b,
+.world-node.bush em {
+  background: #2d7049;
+  border: 2px solid #1e503a;
+  border-radius: 50%;
+  bottom: 0;
+  height: 38px;
+  position: absolute;
+  width: 42px;
+}
+
+.world-node.bush i { left: 0; }
+.world-node.bush b { left: 19px; bottom: 8px; background: #468b4d; }
+.world-node.bush em { right: 0; }
+
+.world-node.rock {
+  background: #77786b;
+  border: 3px solid #4c554d;
+  border-radius: 60% 40% 35% 45%;
+  height: 28px;
+  width: 44px;
+  z-index: 1;
+}
+
+.world-node.flower {
+  background: #e6b15b;
+  border: 4px dotted #a85454;
+  border-radius: 50%;
+  height: 19px;
+  width: 19px;
+  z-index: 3;
+}
+
+.world-node.shrine {
+  background: #9e8a68;
+  border: 5px solid #665744;
+  border-radius: 8px 8px 2px 2px;
+  height: 58px;
+  width: 48px;
+  z-index: 2;
+}
+
+.world-node.shrine i {
+  background: #4ab296;
+  border: 3px solid #295d54;
+  border-radius: 50%;
+  height: 18px;
+  left: 10px;
+  position: absolute;
+  top: 10px;
+  width: 18px;
+}
+
+.world-node.shrine b {
+  background: #cdb78a;
+  bottom: -10px;
+  height: 8px;
+  left: -10px;
+  position: absolute;
+  width: 58px;
+}
+
+.world-label {
+  background: rgba(12, 57, 49, 0.82);
+  border-left: 3px solid #e2a44e;
+  color: #fff0d8;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 8px 11px;
+  position: absolute;
+  transform: rotate(-8deg);
+  z-index: 3;
+}
+
+.world-label-one { left: 500px; top: 240px; }
+.world-label-two { left: 1060px; top: 740px; transform: rotate(7deg); }
 
 .map-tile {
   border-radius: 999px;

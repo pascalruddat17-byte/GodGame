@@ -820,11 +820,32 @@ export default function Home() {
             >
               <div
                 className="map-pan-layer"
-                style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px)` }}
+                style={{
+                  transform: `translate(calc(-50% + ${mapOffset.x}px), calc(-50% + ${mapOffset.y}px))`,
+                }}
               >
-                {Array.from({ length: 34 }, (_, index) => (
-                  <span className={`map-tile tile-${index % 7}`} key={index} />
-                ))}
+                <div className="world-ground" />
+                <div className="world-river" />
+                <div className="world-path" />
+                {Array.from({ length: 96 }, (_, index) => {
+                  const kinds = ["tree", "tree", "pine", "bush", "rock", "flower", "tree", "shrine"];
+                  const kind = kinds[index % kinds.length];
+                  const left = (index * 173 + (index % 5) * 47) % 1700;
+                  const top = (index * 97 + (index % 7) * 31) % 1040;
+                  const scale = 0.72 + (index % 5) * 0.1;
+                  return (
+                    <span
+                      className={`world-node ${kind}`}
+                      key={index}
+                      style={{ left, top, "--node-scale": scale } as React.CSSProperties}
+                    >
+                      {(kind === "tree" || kind === "pine" || kind === "bush") && <><i /><b /><em /></>}
+                      {kind === "shrine" && <><i /><b /></>}
+                    </span>
+                  );
+                })}
+                <div className="world-label world-label-one">MOONWATER CREEK</div>
+                <div className="world-label world-label-two">ANCIENT GROVE</div>
                 <Creature equipped={currentCreature.equipped} compact />
                 <span className="map-creature one" />
                 <span className="map-creature two" />
