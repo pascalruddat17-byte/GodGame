@@ -639,6 +639,23 @@ export default function Home() {
     setMapZoom(1);
   }
 
+  function performWorldAction(action: WorldAction) {
+    setWorldAction(action);
+    if (action === "Sammelt") {
+      setGlobal((value) => ({ ...value, coins: value.coins + 5 }));
+    }
+    if (action === "Baut") {
+      setSlots((saveSlots) =>
+        saveSlots.map((slot, index) =>
+          index === activeSlot ? { ...slot, progress: Math.min(100, slot.progress + 2) } : slot,
+        ),
+      );
+    }
+    if (action === "Erkundet") {
+      setMapOffset((offset) => ({ x: offset.x - 90, y: offset.y - 55 }));
+    }
+  }
+
   return (
     <main className="game-shell">
       <link rel="preload" as="image" href="/reference-lobby-empty.jpg" />
@@ -909,13 +926,13 @@ export default function Home() {
                 <strong>{currentCreature.name}</strong>
                 <small>{worldAction}</small>
               </div>
-              <button className={worldAction === "Sammelt" ? "is-active" : ""} onClick={() => setWorldAction("Sammelt")}>
+              <button className={worldAction === "Sammelt" ? "is-active" : ""} onClick={() => performWorldAction("Sammelt")}>
                 <TreePine size={16} /> Sammeln
               </button>
-              <button className={worldAction === "Baut" ? "is-active" : ""} onClick={() => setWorldAction("Baut")}>
+              <button className={worldAction === "Baut" ? "is-active" : ""} onClick={() => performWorldAction("Baut")}>
                 <Mountain size={16} /> Bauen
               </button>
-              <button className={worldAction === "Erkundet" ? "is-active" : ""} onClick={() => setWorldAction("Erkundet")}>
+              <button className={worldAction === "Erkundet" ? "is-active" : ""} onClick={() => performWorldAction("Erkundet")}>
                 <Wind size={16} /> Erkunden
               </button>
             </div>
